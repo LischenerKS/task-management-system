@@ -136,9 +136,9 @@ src/main/java/io/github/lischenerks/taskmanagement/
 
 ```json
 {
-  "type": "Entity not found",
-  "message": "Not found task with id = 99",
-  "timestamp": "2026-06-08T14:30:00"
+    "message": "Bad request",
+    "detailedMessage": "can not complete task without filled field assignedUserId",
+    "errorTime": "2026-06-08T22:11:42.580948592"
 }
 ```
 

@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @RequestMapping("/tasks")
 @RestController
@@ -97,7 +96,7 @@ public class TaskController {
     }
 
 
-    @GetMapping("/{id}/start")
+    @PostMapping("/{id}/start")
     public ResponseEntity<String> startTask(
             @PathVariable("id") Long id
     ) {

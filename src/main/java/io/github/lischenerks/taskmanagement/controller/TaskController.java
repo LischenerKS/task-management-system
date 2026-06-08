@@ -3,6 +3,7 @@ package io.github.lischenerks.taskmanagement.controller;
 import io.github.lischenerks.taskmanagement.Task;
 import io.github.lischenerks.taskmanagement.service.TaskService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -36,48 +37,31 @@ public class TaskController {
             @PathVariable("id") Long id
     ) {
         log.info("called method getTestById with id= {}", id);
-        try {
-            var task = taskService.getTaskById(id);
-            log.info("method getTestById return task with id= {}", task.id());
-            return ResponseEntity.status(HttpStatus.OK).body(task);
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        var task = taskService.getTaskById(id);
+        log.info("method getTestById return task with id= {}", task.id());
+        return ResponseEntity.status(HttpStatus.OK).body(task);
+
     }
 
     @PostMapping()
     public ResponseEntity<Task> createTask(
-            @RequestBody Task task
+            @Valid @RequestBody Task task
     ) {
         log.info("called method createTask");
-        try {
-            var createdTask = taskService.createTask(task);
-            log.info("method createTask successfully ended");
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
-        } catch (IllegalArgumentException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        var createdTask = taskService.createTask(task);
+        log.info("method createTask successfully ended");
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTask(
             @PathVariable("id") Long id,
-            @RequestBody Task task
+            @Valid @RequestBody Task task
         ) {
         log.info("called method updateTask with id = {}", id);
-        try {
-            var updatedTask = taskService.updateTask(id, task);
-            log.info("method updateTask successfully ended");
-            return ResponseEntity.status(HttpStatus.OK).body(updatedTask);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        var updatedTask = taskService.updateTask(id, task);
+        log.info("method updateTask successfully ended");
+        return ResponseEntity.status(HttpStatus.OK).body(updatedTask);
     }
 
     @DeleteMapping("/{id}")
@@ -85,32 +69,29 @@ public class TaskController {
             @PathVariable("id") Long id
     ) {
         log.info("called method deleteTask with id = {}", id);
-        try {
-            taskService.deleteTask(id);
-            log.info("method deleteTask with id = {} successfully ended", id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        taskService.deleteTask(id);
+        log.info("method deleteTask with id = {} successfully ended", id);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 
     @PostMapping("/{id}/start")
-    public ResponseEntity<String> startTask(
+    public ResponseEntity<Task> startTask(
             @PathVariable("id") Long id
     ) {
         log.info("called method startTask with id = {}", id);
-        try {
-            taskService.startTask(id);
-            log.info("method startTask with id = {} successfully ended", id);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalStateException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        var startedTask = taskService.startTask(id);
+        log.info("method startTask with id = {} successfully ended", id);
+        return ResponseEntity.status(HttpStatus.OK).body(startedTask);
+    }
+
+    @PostMapping("/{id}/complete")
+    public ResponseEntity<Task> completeTask(
+            @PathVariable("id") Long id
+    ) {
+        log.info("called method completeTask with id = {}", id);
+        var completedTask =  taskService.completeTask(id);
+        log.info("method completeTask with id = {} successfully ended", id);
+        return ResponseEntity.status(HttpStatus.OK).body(completedTask);
     }
 }

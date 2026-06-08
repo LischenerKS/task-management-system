@@ -9,6 +9,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -56,8 +58,8 @@ public class TaskService {
         }
         TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Not found task with id = " + id));
-        if (taskEntity.getStatus() == TaskStatus.DONE) {
-            throw new IllegalStateException("can not update task with status DONE");
+        if (taskEntity.getStatus() == TaskStatus.DONE && task.status() != TaskStatus.IN_PROGRESS) {
+            throw new IllegalStateException("can not set status %S to task with status DONE. You can set only status IN_PROGRESS".formatted(task.status()));
         }
         taskEntity.setCreatorId(task.creatorId());
         taskEntity.setAssignedUserId(task.assignedUserId());
@@ -77,11 +79,14 @@ public class TaskService {
         log.info("method deleteTask deleted task with id = {}", id);
     }
 
-    public void startTask(Long id) {
+    public Task startTask(Long id) {
         log.info("called method startTask with id = {}", id);
         TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found task with id = " + id));
         if (taskEntity.getAssignedUserId() == null) {
             throw new IllegalStateException("assignedUserId must be filled before task starts");
+        }
+        if (taskEntity.getStatus() == TaskStatus.IN_PROGRESS) {
+            throw new IllegalStateException("can not start task with status IN_PROGRESS");
         }
         Long userId = taskEntity.getAssignedUserId();
         Integer numberOfStartedTasksOfThisUser = repository.countByAssignedUserIdAndStatus(userId, TaskStatus.IN_PROGRESS);
@@ -91,7 +96,24 @@ public class TaskService {
         }
 
         taskEntity.setStatus(TaskStatus.IN_PROGRESS);
-        repository.save(taskEntity);
+        TaskEntity startedTask = repository.save(taskEntity);
         log.info("method startTask started task with id = {}", id);
+        return mapper.toTask(startedTask);
+    }
+
+    public Task completeTask(Long id) {
+        log.info("called method completeTask with id = {}", id);
+        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found task with id = " + id));
+        if (taskEntity.getAssignedUserId() == null) {
+            throw new IllegalStateException("can not complete task without filled field assignedUserId");
+        }
+        if (taskEntity.getDeadlineDate() == null) {
+            throw new IllegalStateException("can not complete task without filled field deadlineDate");
+        }
+        taskEntity.setStatus(TaskStatus.DONE);
+        taskEntity.setDoneDateTime(LocalDateTime.now());
+        TaskEntity completedTask = repository.save(taskEntity);
+        log.info("method completeTask completed task with id = {}", id);
+        return mapper.toTask(completedTask);
     }
 }

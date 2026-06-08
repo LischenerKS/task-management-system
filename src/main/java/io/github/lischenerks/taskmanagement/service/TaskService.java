@@ -6,6 +6,7 @@ import io.github.lischenerks.taskmanagement.TaskStatus;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +31,23 @@ public class TaskService {
         return mapper.toTask(taskEntity);
     }
 
-    public List<Task> getAllTasks() {
-        log.info("called method getAllTasks");
-        return repository.findAll().stream().map(mapper::toTask).toList();
+    public List<Task> getAllTasksWithFilters(TaskSearchFilter filter) {
+        int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
+        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
+
+        var pageable = Pageable
+                .ofSize(pageSize)
+                .withPage(pageNumber);
+
+        log.info("called method getAllTasksWithFilters");
+
+        return repository.getAllTasksWithFilters(
+                filter.creatorId(),
+                filter.assignedUserId(),
+                filter.status(),
+                filter.priority(),
+                pageable
+        ).stream().map(mapper::toTask).toList();
     }
 
     public Task createTask(Task task) {
@@ -54,7 +69,7 @@ public class TaskService {
     public Task updateTask(Long id, Task task) {
         log.info("called method updateTask with id = {}", id);
         if (task.id() != null) {
-            throw new IllegalArgumentException("created tasks id must be null");
+            throw new IllegalArgumentException("updated tasks id must be null");
         }
         TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Not found task with id = " + id));
@@ -92,7 +107,7 @@ public class TaskService {
         Integer numberOfStartedTasksOfThisUser = repository.countByAssignedUserIdAndStatus(userId, TaskStatus.IN_PROGRESS);
 
         if (numberOfStartedTasksOfThisUser >= 5) {
-            throw new IllegalStateException("can not start task to user who has more than 5 tasks");
+            throw new IllegalStateException("user already has 5 active tasks (IN_PROGRESS). Can not assign more");
         }
 
         taskEntity.setStatus(TaskStatus.IN_PROGRESS);

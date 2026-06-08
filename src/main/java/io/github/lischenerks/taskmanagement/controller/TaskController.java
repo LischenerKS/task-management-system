@@ -1,8 +1,10 @@
 package io.github.lischenerks.taskmanagement.controller;
 
 import io.github.lischenerks.taskmanagement.Task;
+import io.github.lischenerks.taskmanagement.TaskPriority;
+import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,16 +26,31 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks() {
-        log.info("called method getAllTasks");
-        var tasks = taskService.getAllTasks();
-        log.info("method getAllTasks return {} tasks", tasks.size());
+    public ResponseEntity<List<Task>> getAllTasksWithFilters(
+            @RequestParam(name = "creatorId", required = false) Long creatorId,
+            @RequestParam(name = "assignedUserId", required = false) Long assignedUserId,
+            @RequestParam(name = "status", required = false) TaskStatus status,
+            @RequestParam(name = "priority", required = false) TaskPriority priority,
+            @RequestParam(name = "pageSize", required = false) Integer pageSize,
+            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+    ) {
+        log.info("called method getAllTasksWithFilters");
+        TaskSearchFilter fIlter = new TaskSearchFilter(
+                creatorId,
+                assignedUserId,
+                status,
+                priority,
+                pageSize,
+                pageNumber
+        );
+        var tasks = taskService.getAllTasksWithFilters(fIlter);
+        log.info("method getAllTasksWithFilters return {} tasks", tasks.size());
         return ResponseEntity.status(HttpStatus.OK).body(tasks);
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTastById(
+    public ResponseEntity<Task> getTaskById(
             @PathVariable("id") Long id
     ) {
         log.info("called method getTestById with id= {}", id);
@@ -71,7 +88,7 @@ public class TaskController {
         log.info("called method deleteTask with id = {}", id);
         taskService.deleteTask(id);
         log.info("method deleteTask with id = {} successfully ended", id);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 

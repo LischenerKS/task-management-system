@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: task_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+  app:
+    build: .
+    depends_on: [postgres]
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/task_management
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    ports: ["8080:8080"]
+volumes:
+  pgdata:

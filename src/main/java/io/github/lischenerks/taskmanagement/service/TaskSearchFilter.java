@@ -9,7 +9,4 @@ public record TaskSearchFilter(
         TaskStatus status,
         TaskPriority priority,
         Integer pageSize,
-        Integer pageNumber
-) {
-
-}
+        Integer pageNumber) {}

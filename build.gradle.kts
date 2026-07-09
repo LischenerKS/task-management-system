@@ -3,6 +3,7 @@ plugins {
     id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
     id("jacoco")
+    id("com.diffplug.spotless") version "8.8.0"
 }
 
 group = "io.github.lischenerks"
@@ -64,4 +65,14 @@ tasks.jacocoTestReport {
 
 tasks.check {
     dependsOn(tasks.jacocoTestReport)
+}
+
+spotless {
+    java {
+        target("src/*/java/**/*.java")
+        googleJavaFormat("1.28.0").aosp()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }

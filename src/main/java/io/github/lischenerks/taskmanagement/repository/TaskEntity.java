@@ -67,7 +67,8 @@ public class TaskEntity {
     @Column(name = "done_date_time")
     private LocalDateTime doneDateTime;
 
-    public TaskEntity() {}
+    public TaskEntity() {
+    }
 
     public void setId(Long id) {
         this.id = id;

@@ -20,10 +20,12 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 public class TaskRepositoryTest {
-    @Container @ServiceConnection
+    @Container
+    @ServiceConnection
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine");
 
-    @Autowired private TaskRepository repository;
+    @Autowired
+    private TaskRepository repository;
 
     private static TaskEntity entity1;
 
@@ -33,58 +35,67 @@ public class TaskRepositoryTest {
 
     @BeforeAll
     static void setUp(@Autowired TaskRepository repository) {
-        entity1 =
-                repository.save(
-                        new TaskEntity(
-                                null,
-                                0L,
-                                0L,
-                                TaskStatus.CREATED,
-                                LocalDateTime.now(),
-                                LocalDateTime.now().plusDays(1),
-                                TaskPriority.LOW,
-                                LocalDateTime.now().plusDays(2)));
+        entity1 = repository.save(
+                new TaskEntity(
+                        null,
+                        0L,
+                        0L,
+                        TaskStatus.CREATED,
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusDays(1),
+                        TaskPriority.LOW,
+                        LocalDateTime.now().plusDays(2)));
 
-        entity2 =
-                repository.save(
-                        new TaskEntity(
-                                null,
-                                1L,
-                                1L,
-                                TaskStatus.IN_PROGRESS,
-                                LocalDateTime.now(),
-                                LocalDateTime.now().plusDays(1),
-                                TaskPriority.MEDIUM,
-                                LocalDateTime.now().plusDays(2)));
+        entity2 = repository.save(
+                new TaskEntity(
+                        null,
+                        1L,
+                        1L,
+                        TaskStatus.IN_PROGRESS,
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusDays(1),
+                        TaskPriority.MEDIUM,
+                        LocalDateTime.now().plusDays(2)));
 
-        entity3 =
-                repository.save(
-                        new TaskEntity(
-                                null,
-                                2L,
-                                2L,
-                                TaskStatus.DONE,
-                                LocalDateTime.now(),
-                                LocalDateTime.now().plusDays(1),
-                                TaskPriority.HIGH,
-                                LocalDateTime.now().plusDays(2)));
+        entity3 = repository.save(
+                new TaskEntity(
+                        null,
+                        2L,
+                        2L,
+                        TaskStatus.DONE,
+                        LocalDateTime.now(),
+                        LocalDateTime.now().plusDays(1),
+                        TaskPriority.HIGH,
+                        LocalDateTime.now().plusDays(2)));
     }
 
     @Test
     void getAllTasksWithFilters_filtersByStatus() {
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
-                        null, null, TaskStatus.CREATED, null, Pageable.ofSize(10)),
+                        null,
+                        null,
+                        TaskStatus.CREATED,
+                        null,
+                        Pageable.ofSize(10)),
                 List.of(entity1));
 
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
-                        null, null, TaskStatus.IN_PROGRESS, null, Pageable.ofSize(10)),
+                        null,
+                        null,
+                        TaskStatus.IN_PROGRESS,
+                        null,
+                        Pageable.ofSize(10)),
                 List.of(entity2));
 
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
-                        null, null, TaskStatus.DONE, null, Pageable.ofSize(10)),
+                        null,
+                        null,
+                        TaskStatus.DONE,
+                        null,
+                        Pageable.ofSize(10)),
                 List.of(entity3));
     }
 
@@ -92,17 +103,29 @@ public class TaskRepositoryTest {
     void getAllTasksWithFilters_filtersByPriority() {
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
-                        null, null, null, TaskPriority.LOW, Pageable.ofSize(10)),
+                        null,
+                        null,
+                        null,
+                        TaskPriority.LOW,
+                        Pageable.ofSize(10)),
                 List.of(entity1));
 
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
-                        null, null, null, TaskPriority.MEDIUM, Pageable.ofSize(10)),
+                        null,
+                        null,
+                        null,
+                        TaskPriority.MEDIUM,
+                        Pageable.ofSize(10)),
                 List.of(entity2));
 
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
-                        null, null, null, TaskPriority.HIGH, Pageable.ofSize(10)),
+                        null,
+                        null,
+                        null,
+                        TaskPriority.HIGH,
+                        Pageable.ofSize(10)),
                 List.of(entity3));
     }
 

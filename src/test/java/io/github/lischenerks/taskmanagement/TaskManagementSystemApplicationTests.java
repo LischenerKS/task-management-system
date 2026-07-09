@@ -10,9 +10,11 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @Testcontainers
 @SpringBootTest
 class TaskManagementSystemApplicationTests {
-    @Container @ServiceConnection
+    @Container
+    @ServiceConnection
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine");
 
     @Test
-    void contextLoads() {}
+    void contextLoads() {
+    }
 }

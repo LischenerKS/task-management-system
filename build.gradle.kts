@@ -2,6 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
+    id("jacoco")
 }
 
 group = "io.github.lischenerks"
@@ -25,6 +26,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     runtimeOnly("org.postgresql:postgresql")
 
@@ -34,6 +36,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("org.springframework.boot:spring-boot-data-jpa-test")
+
 
     mockitoAgent("org.mockito:mockito-core:5.+") { isTransitive = false }
 }
@@ -48,4 +51,8 @@ dependencyManagement {
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-javaagent:${mockitoAgent.singleFile}")
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
 }

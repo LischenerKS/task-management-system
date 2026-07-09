@@ -5,6 +5,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql&logoColor=white)
 ![Gradle](https://img.shields.io/badge/Gradle-9.5.1-02303A?logo=gradle&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+![Coverage](.github/badges/jacoco.svg)
 
 REST API для управления задачами (task tracker): создание, назначение исполнителей, контроль дедлайнов и приоритетов, переходы по жизненному циклу задачи.
 

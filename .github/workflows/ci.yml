@@ -37,14 +37,14 @@ jobs:
           retention-days: 14
 
       - name: Generate coverage badge
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev') && github.event_name == 'push'
         uses: cicirello/jacoco-badge-generator@v2
         with:
           jacoco-csv-file: build/reports/jacoco/test/jacocoTestReport.csv
           badges-directory: .github/badges
 
       - name: Commit updated badge
-        if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+        if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev') && github.event_name == 'push'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "docs: update coverage badge"

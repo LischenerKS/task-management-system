@@ -5,6 +5,7 @@ import io.github.lischenerks.taskmanagement.TaskStatus;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "task")
@@ -32,6 +33,18 @@ public class TaskEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "priority")
     private TaskPriority priority;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        TaskEntity that = (TaskEntity) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 
     public TaskEntity(
             Long id,

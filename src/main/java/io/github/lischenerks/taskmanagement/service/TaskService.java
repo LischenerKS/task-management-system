@@ -27,7 +27,8 @@ public class TaskService {
 
     public Task getTaskById(Long id) {
         log.info("called method getTaskById with id = {}", id);
-        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found task with id = " + id));
+        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                "Not found task with id = " + id));
         return mapper.toTask(taskEntity);
     }
 
@@ -35,9 +36,7 @@ public class TaskService {
         int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
         int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
 
-        var pageable = Pageable
-                .ofSize(pageSize)
-                .withPage(pageNumber);
+        var pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
 
         log.info("called method getAllTasksWithFilters");
 
@@ -61,7 +60,7 @@ public class TaskService {
 
         TaskEntity createdTask = mapper.toTaskEntity(task);
         createdTask.setStatus(TaskStatus.CREATED);
-        TaskEntity savedTask =  repository.save(createdTask);
+        TaskEntity savedTask = repository.save(createdTask);
         log.info("method createTask saved task with id = {}", savedTask.getId());
         return mapper.toTask(savedTask);
     }
@@ -74,7 +73,9 @@ public class TaskService {
         TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Not found task with id = " + id));
         if (taskEntity.getStatus() == TaskStatus.DONE && task.status() != TaskStatus.IN_PROGRESS) {
-            throw new IllegalStateException("can not set status %S to task with status DONE. You can set only status IN_PROGRESS".formatted(task.status()));
+            throw new IllegalStateException(
+                    "can not set status %S to task with status DONE. You can set only status IN_PROGRESS".formatted(
+                            task.status()));
         }
         taskEntity.setCreatorId(task.creatorId());
         taskEntity.setAssignedUserId(task.assignedUserId());
@@ -89,14 +90,16 @@ public class TaskService {
 
     public void deleteTask(Long id) {
         log.info("called method deleteTask with id = {}", id);
-        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found task with id = " + id));
+        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                "Not found task with id = " + id));
         repository.delete(taskEntity);
         log.info("method deleteTask deleted task with id = {}", id);
     }
 
     public Task startTask(Long id) {
         log.info("called method startTask with id = {}", id);
-        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found task with id = " + id));
+        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                "Not found task with id = " + id));
         if (taskEntity.getAssignedUserId() == null) {
             throw new IllegalStateException("assignedUserId must be filled before task starts");
         }
@@ -104,7 +107,8 @@ public class TaskService {
             throw new IllegalStateException("can not start task with status IN_PROGRESS");
         }
         Long userId = taskEntity.getAssignedUserId();
-        Integer numberOfStartedTasksOfThisUser = repository.countByAssignedUserIdAndStatus(userId, TaskStatus.IN_PROGRESS);
+        Integer numberOfStartedTasksOfThisUser = repository.countByAssignedUserIdAndStatus(userId,
+                TaskStatus.IN_PROGRESS);
 
         if (numberOfStartedTasksOfThisUser >= 5) {
             throw new IllegalStateException("user already has 5 active tasks (IN_PROGRESS). Can not assign more");
@@ -118,7 +122,8 @@ public class TaskService {
 
     public Task completeTask(Long id) {
         log.info("called method completeTask with id = {}", id);
-        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException("Not found task with id = " + id));
+        TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
+                "Not found task with id = " + id));
         if (taskEntity.getAssignedUserId() == null) {
             throw new IllegalStateException("can not complete task without filled field assignedUserId");
         }

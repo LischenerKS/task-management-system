@@ -77,9 +77,7 @@ public class TaskControllerTest {
 
         String expectedJson = objectMapper.writeValueAsString(List.of(task));
 
-        mockMvc.perform(get("/tasks"))
-                .andExpect(status().isOk())
-                .andExpect(content().json(expectedJson));
+        mockMvc.perform(get("/tasks")).andExpect(status().isOk()).andExpect(content().json(expectedJson));
 
         verify(taskService, times(1)).getAllTasksWithFilters(filter);
     }
@@ -90,9 +88,7 @@ public class TaskControllerTest {
 
         Mockito.when(taskService.getTaskById(1L)).thenReturn(task);
 
-        mockMvc.perform(get("/tasks/{id}", 1L))
-                .andExpect(status().isOk())
-                .andExpect(content().json(expectedJson));
+        mockMvc.perform(get("/tasks/{id}", 1L)).andExpect(status().isOk()).andExpect(content().json(expectedJson));
 
         verify(taskService, times(1)).getTaskById(1L);
     }
@@ -102,12 +98,8 @@ public class TaskControllerTest {
         String taskJson = objectMapper.writeValueAsString(task);
         Mockito.when(taskService.createTask(task)).thenReturn(task);
 
-        mockMvc.perform(post("/tasks")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(taskJson)
-                )
-                .andExpect(status().isCreated())
-                .andExpect(content().json(taskJson));
+        mockMvc.perform(post("/tasks").contentType(MediaType.APPLICATION_JSON).content(taskJson)
+        ).andExpect(status().isCreated()).andExpect(content().json(taskJson));
 
         verify(taskService, times(1)).createTask(task);
     }
@@ -117,28 +109,22 @@ public class TaskControllerTest {
         String taskJson = objectMapper.writeValueAsString(task);
         Mockito.when(taskService.updateTask(1L, task)).thenReturn(task);
 
-        mockMvc.perform(put("/tasks/{id}", 1L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(taskJson)
-                )
-                .andExpect(status().isOk())
-                .andExpect(content().json(taskJson));
+        mockMvc.perform(put("/tasks/{id}", 1L).contentType(MediaType.APPLICATION_JSON).content(taskJson)
+        ).andExpect(status().isOk()).andExpect(content().json(taskJson));
 
         verify(taskService, times(1)).updateTask(1L, task);
     }
 
     @Test
     void startTask() throws Exception {
-        mockMvc.perform(post("/tasks/{id}/start", 1L))
-                .andExpect(status().isOk());
+        mockMvc.perform(post("/tasks/{id}/start", 1L)).andExpect(status().isOk());
 
         verify(taskService, times(1)).startTask(1L);
     }
 
     @Test
     void completeTask() throws Exception {
-        mockMvc.perform(post("/tasks/{id}/complete", 1L))
-                .andExpect(status().isOk());
+        mockMvc.perform(post("/tasks/{id}/complete", 1L)).andExpect(status().isOk());
         verify(taskService, times(1)).completeTask(1L);
     }
 }

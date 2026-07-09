@@ -26,9 +26,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
 
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(errorDto);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDto);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
@@ -40,9 +38,7 @@ public class GlobalExceptionHandler {
                 e.getMessage(),
                 LocalDateTime.now()
         );
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(errorDto);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDto);
     }
 
     @ExceptionHandler(exception = {
@@ -58,8 +54,6 @@ public class GlobalExceptionHandler {
                 e.getMessage(),
                 LocalDateTime.now()
         );
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(errorDto);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDto);
     }
 }

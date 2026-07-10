@@ -14,12 +14,12 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
     Integer countByAssignedUserIdAndStatus(Long assignedUserId, TaskStatus status);
 
     @Query("""
-        SELECT t from TaskEntity t
-        WHERE (:creatorId is null OR t.creatorId = :creatorId) AND 
-        (:assignedUserId is null OR t.assignedUserId = :assignedUserId) AND 
-        (:status is null OR t.status = :status) AND 
-        (:priority is null OR t.priority = :priority)
-    """)
+                SELECT t from TaskEntity t
+                WHERE (:creatorId is null OR t.creatorId = :creatorId) AND
+                (:assignedUserId is null OR t.assignedUserId = :assignedUserId) AND
+                (:status is null OR t.status = :status) AND
+                (:priority is null OR t.priority = :priority)
+            """)
     List<TaskEntity> getAllTasksWithFilters(
             @Param("creatorId") Long creatorId,
             @Param("assignedUserId") Long assignedUserId,

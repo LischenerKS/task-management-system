@@ -1,5 +1,8 @@
 package io.github.lischenerks.taskmanagement.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.github.lischenerks.taskmanagement.Task;
 import io.github.lischenerks.taskmanagement.TaskMapper;
 import io.github.lischenerks.taskmanagement.TaskPriority;
@@ -7,6 +10,8 @@ import io.github.lischenerks.taskmanagement.TaskStatus;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,13 +20,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
@@ -44,8 +42,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
         assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task));
     }
 
@@ -59,8 +56,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
         assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task));
     }
 
@@ -75,8 +71,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         assertThrows(IllegalStateException.class, () -> taskService.startTask(id));
     }
@@ -92,8 +87,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         assertThrows(IllegalStateException.class, () -> taskService.startTask(id));
     }
@@ -110,10 +104,12 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
-        Mockito.when(repository.countByAssignedUserIdAndStatus(assignedUserId, TaskStatus.IN_PROGRESS)).thenReturn(5);
+        Mockito.when(
+                repository.countByAssignedUserIdAndStatus(
+                        assignedUserId,
+                        TaskStatus.IN_PROGRESS)).thenReturn(5);
         assertThrows(IllegalStateException.class, () -> taskService.startTask(id));
     }
 
@@ -128,8 +124,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         assertThrows(IllegalStateException.class, () -> taskService.completeTask(id));
     }
@@ -145,8 +140,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 null,
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         assertThrows(IllegalStateException.class, () -> taskService.completeTask(id));
     }
@@ -162,8 +156,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                null
-        );
+                null);
 
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         Mockito.when(repository.save(taskEntity)).thenReturn(taskEntity);
@@ -187,8 +180,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                null
-        );
+                null);
 
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         Mockito.when(repository.save(taskEntity)).thenReturn(taskEntity);
@@ -209,8 +201,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                null
-        );
+                null);
 
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         Mockito.when(repository.save(taskEntity)).thenReturn(taskEntity);
@@ -230,8 +221,7 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2)
-        );
+                LocalDateTime.now().plusDays(2));
 
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
 
@@ -246,8 +236,7 @@ public class TaskServiceTest {
                     LocalDateTime.now(),
                     LocalDateTime.now().plusDays(1),
                     TaskPriority.HIGH,
-                    LocalDateTime.now().plusDays(2)
-            );
+                    LocalDateTime.now().plusDays(2));
 
             assertThrows(IllegalStateException.class, () -> taskService.updateTask(id, task));
         }

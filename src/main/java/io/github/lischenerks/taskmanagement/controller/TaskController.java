@@ -74,7 +74,7 @@ public class TaskController {
     public ResponseEntity<Task> updateTask(
             @PathVariable("id") Long id,
             @Valid @RequestBody Task task
-        ) {
+    ) {
         log.info("called method updateTask with id = {}", id);
         var updatedTask = taskService.updateTask(id, task);
         log.info("method updateTask successfully ended");
@@ -107,7 +107,7 @@ public class TaskController {
             @PathVariable("id") Long id
     ) {
         log.info("called method completeTask with id = {}", id);
-        var completedTask =  taskService.completeTask(id);
+        var completedTask = taskService.completeTask(id);
         log.info("method completeTask with id = {} successfully ended", id);
         return ResponseEntity.status(HttpStatus.OK).body(completedTask);
     }

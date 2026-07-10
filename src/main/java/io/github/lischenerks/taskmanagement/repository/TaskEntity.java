@@ -3,7 +3,6 @@ package io.github.lischenerks.taskmanagement.repository;
 import io.github.lischenerks.taskmanagement.TaskPriority;
 import io.github.lischenerks.taskmanagement.TaskStatus;
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -54,8 +53,7 @@ public class TaskEntity {
             LocalDateTime createDateTime,
             LocalDateTime deadlineDate,
             TaskPriority priority,
-            LocalDateTime doneDateTime
-    ) {
+            LocalDateTime doneDateTime) {
         this.id = id;
         this.creatorId = creatorId;
         this.assignedUserId = assignedUserId;
@@ -69,9 +67,7 @@ public class TaskEntity {
     @Column(name = "done_date_time")
     private LocalDateTime doneDateTime;
 
-
     public TaskEntity() {
-
     }
 
     public void setId(Long id) {

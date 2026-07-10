@@ -1,5 +1,7 @@
 # Task Management System
 
+[English version](README.en.md)
+
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.6-brightgreen?logo=springboot&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql&logoColor=white)
@@ -7,15 +9,17 @@
 ![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 ![Coverage](.github/badges/jacoco.svg)
 
-REST API для управления задачами (task tracker): создание, назначение исполнителей, контроль дедлайнов и приоритетов, переходы по жизненному циклу задачи.
+REST API для управления задачами (task tracker): создание, назначение
+исполнителей, контроль дедлайнов и приоритетов, переходы по жизненному
+циклу задачи. Проект написан как demo/pet-проект с акцентом на
+production-практики: миграции БД, конкурентный доступ, тесты на реальной
+СУБД, CI.
 
 ## Содержание
 
 - [Возможности](#возможности)
 - [Технологический стек](#технологический-стек)
 - [Быстрый старт](#быстрый-старт)
-    - [Через Docker Compose](#через-docker-compose)
-    - [Локальный запуск](#локальный-запуск)
 - [Документация API (Swagger)](#документация-api-swagger)
 - [Жизненный цикл задачи](#жизненный-цикл-задачи)
 - [Бизнес-правила](#бизнес-правила)
@@ -30,22 +34,27 @@ REST API для управления задачами (task tracker): созда
 - Фильтрация списка задач по автору, исполнителю, статусу и приоритету + пагинация
 - Управление жизненным циклом задачи через отдельные эндпоинты `start` / `complete`
 - Валидация входных данных (Jakarta Validation) и единый формат ответа об ошибке
+- Защита от гонок при параллельном старте задач одним исполнителем
+  (пессимистичная блокировка) и optimistic locking на уровне сущности (`@Version`)
+- Версионируемая схема БД (Flyway)
 - Автогенерируемая OpenAPI-документация (springdoc) и Swagger UI
 - Docker-образ и `docker-compose.yml` для запуска в один шаг
+- Интеграционные тесты на реальном PostgreSQL через Testcontainers, отчёт покрытия Jacoco
 
 ## Технологический стек
 
 | Компонент | Технология |
 |---|---|
 | Язык | Java 21 |
-| Фреймворк | Spring Boot 4.0.6 (Web, Data JPA, Validation) |
+| Фреймворк | Spring Boot 4.0.6 (Web, Data JPA, Validation, Actuator) |
 | База данных | PostgreSQL 16 |
-| ORM | Hibernate / Spring Data JPA |
-| Документация API | springdoc-openapi 3.0.3 |
+| ORM / миграции | Hibernate / Spring Data JPA, Flyway |
+| Документация API | springdoc-openapi 3.0.3 (Swagger UI) |
 | Сборка | Gradle 9.5.1 (Kotlin DSL) |
-| Тесты | JUnit 5, Mockito |
-| Логирование | SLF4J |
-| Контейнеризация | Docker, Docker Compose |
+| Тесты | JUnit 5, Mockito, Testcontainers, Jacoco |
+| Форматирование кода | Spotless (Eclipse formatter) |
+| CI | GitHub Actions |
+| Контейнеризация | Docker (multi-stage), Docker Compose |
 
 ## Быстрый старт
 
@@ -63,7 +72,7 @@ docker compose up --build
 
 ### Локальный запуск
 
-**Требования:** JDK 21, PostgreSQL, Gradle не нужен — используется wrapper (`gradlew`).
+**Требования:** JDK 21, PostgreSQL 16. Gradle отдельно ставить не нужно — используется wrapper (`gradlew`).
 
 1. Создать базу данных:
 
@@ -85,7 +94,8 @@ DB_PASSWORD=secret
 ./gradlew bootRun
 ```
 
-Схема базы данных создаётся автоматически при первом запуске (`spring.jpa.hibernate.ddl-auto=update`).
+Схема базы данных создаётся и версионируется автоматически при старте
+через Flyway-миграции (`src/main/resources/db/migration`).
 
 Либо собрать и запустить JAR-файл:
 
@@ -117,12 +127,26 @@ CREATED ──[start]──► IN_PROGRESS ──[complete]──► DONE
 
 ## Бизнес-правила
 
-- При создании задачи поля `id` и `status` не передаются — выставляются автоматически (`status = CREATED`)
-- `POST /tasks/{id}/start`: обязателен `assignedUserId`; у одного исполнителя не может быть больше 5 задач в статусе `IN_PROGRESS` одновременно; повторный `start` уже стартовавшей задачи запрещён
-- `POST /tasks/{id}/complete`: обязательны `assignedUserId` и `deadlineDate`; при завершении автоматически проставляется `doneDateTime`
-- Задачу в статусе `DONE` через `PUT` можно перевести только обратно в `IN_PROGRESS` — прямое редактирование других полей заблокировано
-- `deadlineDate` обязателен и должен быть указан в будущем (`@Future`)
-- `creatorId` и `priority` — обязательные поля при создании и обновлении
+Правила ниже взяты непосредственно из `TaskService` и валидации DTO `Task`:
+
+- При создании задачи поля `id` и `status` передавать нельзя — сервер сам
+  выставляет `status = CREATED` (запрос с ненулевым `id`/`status` отклоняется `400`)
+- `deadlineDate` обязателен и должен быть в будущем (`@Future`); `creatorId`
+  и `priority` обязательны при создании и обновлении
+- `POST /tasks/{id}/start`:
+  - у задачи должен быть заполнен `assignedUserId`;
+  - повторный `start` уже стартовавшей задачи (`status = IN_PROGRESS`) запрещён;
+  - у одного исполнителя (`assignedUserId`) не может быть больше **5** задач
+    одновременно в статусе `IN_PROGRESS` — лимит проверяется под
+    пессимистичной блокировкой строк исполнителя, что исключает гонку при
+    параллельных запросах на `start`
+- `POST /tasks/{id}/complete`:
+  - обязательны `assignedUserId` и `deadlineDate`;
+  - при завершении сервер автоматически проставляет `doneDateTime = now()`
+- `PUT /tasks/{id}`: задачу в статусе `DONE` можно перевести обратно только
+  в `IN_PROGRESS` — любое другое изменение статуса `DONE`-задачи отклоняется
+- Параллельное изменение одной и той же задачи защищено optimistic locking
+  (поле `version` в `TaskEntity`)
 
 ## Эндпоинты API
 
@@ -141,25 +165,31 @@ Query-параметры (все опциональны):
 | `pageSize` | Integer | 10 |
 | `pageNumber` | Integer | 0 |
 
-```http
-GET /tasks?status=IN_PROGRESS&priority=HIGH&pageSize=5
+```bash
+curl "http://localhost:8080/tasks?status=IN_PROGRESS&priority=HIGH&pageSize=5"
 ```
 
 ### `GET /tasks/{id}`
 
 Получить задачу по идентификатору. `404`, если не найдена.
 
+```bash
+curl http://localhost:8080/tasks/1
+```
+
 ### `POST /tasks`
 
 Создать новую задачу.
 
-```json
-{
-  "creatorId": 42,
-  "assignedUserId": 7,
-  "deadlineDate": "2026-12-31T23:59:59",
-  "priority": "MEDIUM"
-}
+```bash
+curl -X POST http://localhost:8080/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "creatorId": 42,
+    "assignedUserId": 7,
+    "deadlineDate": "2026-12-31T23:59:59",
+    "priority": "MEDIUM"
+  }'
 ```
 
 Возвращает `201 Created` с созданной задачей.
@@ -168,17 +198,41 @@ GET /tasks?status=IN_PROGRESS&priority=HIGH&pageSize=5
 
 Обновить задачу. Тело запроса — как у `POST`, без `id`. Возвращает `200 OK`.
 
+```bash
+curl -X PUT http://localhost:8080/tasks/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "creatorId": 42,
+    "assignedUserId": 7,
+    "status": "IN_PROGRESS",
+    "deadlineDate": "2026-12-31T23:59:59",
+    "priority": "HIGH"
+  }'
+```
+
 ### `DELETE /tasks/{id}`
 
 Удалить задачу. Возвращает `204 No Content`.
+
+```bash
+curl -X DELETE http://localhost:8080/tasks/1
+```
 
 ### `POST /tasks/{id}/start`
 
 Перевести задачу в статус `IN_PROGRESS`. Возвращает `200 OK`.
 
+```bash
+curl -X POST http://localhost:8080/tasks/1/start
+```
+
 ### `POST /tasks/{id}/complete`
 
 Завершить задачу: перевести в статус `DONE`, проставить `doneDateTime`. Возвращает `200 OK`.
+
+```bash
+curl -X POST http://localhost:8080/tasks/1/complete
+```
 
 ## Формат ошибок
 
@@ -186,9 +240,9 @@ GET /tasks?status=IN_PROGRESS&priority=HIGH&pageSize=5
 
 ```json
 {
-  "type": "Entity not found",
-  "message": "Not found task with id = 99",
-  "timestamp": "2026-06-08T14:30:00"
+  "message": "Entity not found",
+  "detailedMessage": "Not found task with id = 99",
+  "errorTime": "2026-06-08T14:30:00"
 }
 ```
 
@@ -213,17 +267,33 @@ src/main/java/io/github/lischenerks/taskmanagement/
 │   ├── TaskService.java
 │   └── TaskSearchFilter.java              # record для параметров фильтра
 ├── repository/
-│   ├── TaskEntity.java
-│   └── TaskRepository.java                # JPA + JPQL-запрос с фильтрами
+│   ├── TaskEntity.java                    # @Version — optimistic locking
+│   └── TaskRepository.java                # JPQL-фильтры + pessimistic lock
 └── exceptions/
     ├── GlobalExceptionHandler.java
     └── ErrorResponseDto.java
+
+src/main/resources/
+├── application.properties
+└── db/migration/
+    └── V1__init_task_table.sql            # Flyway
 ```
 
 ## Тестирование
 
-Юнит-тесты написаны на JUnit 5 с использованием Mockito. Запуск:
-
 ```bash
 ./gradlew test
 ```
+
+- `TaskServiceTest` — unit-тесты сервисного слоя (Mockito)
+- `TaskServiceConcurrencyTest` — конкурентный тест: N параллельных
+  `startTask` для одного исполнителя, проверка, что лимит в 5 активных
+  задач не нарушается
+- `TaskRepositoryTest` — `@DataJpaTest`, JPQL-фильтры репозитория
+- `TaskControllerTest` — тесты контроллера (MockMvc)
+- `TaskManagementSystemApplicationTests` — контекст поднимается на
+  реальном PostgreSQL через Testcontainers (Docker должен быть доступен
+  локально/в CI)
+
+Отчёт покрытия генерируется Jacoco (`build/reports/jacoco/test/html`) и
+автоматически обновляет бейдж в README при пуше в `master`/`dev`.

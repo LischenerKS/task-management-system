@@ -33,6 +33,10 @@ public class TaskEntity {
     @Column(name = "priority")
     private TaskPriority priority;
 
+    @Version
+    @Column(name = "version")
+    private Long version;
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

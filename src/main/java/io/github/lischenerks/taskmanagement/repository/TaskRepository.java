@@ -1,8 +1,8 @@
 package io.github.lischenerks.taskmanagement.repository;
 
 
-import io.github.lischenerks.taskmanagement.TaskPriority;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
@@ -40,7 +40,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
                         SELECT t from TaskEntity t
                         WHERE t.assignedUserId = :assignedUserId
                 """)
-    void lockTasksByAssignedUserId(
+    List<TaskEntity> lockTasksByAssignedUserId(
             @Param("assignedUserId") Long assignedUserId
     );
 }

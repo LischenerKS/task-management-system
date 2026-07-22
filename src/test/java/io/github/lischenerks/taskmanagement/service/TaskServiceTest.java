@@ -1,16 +1,15 @@
 package io.github.lischenerks.taskmanagement.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.TaskMapper;
-import io.github.lischenerks.taskmanagement.TaskPriority;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.Task;
+import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
@@ -33,20 +37,6 @@ public class TaskServiceTest {
     private TaskMapper mapper;
 
     @Test
-    void createTask_withNotNullStatus_throwsException() {
-        Task task = new Task(
-                null,
-                0L,
-                0L,
-                TaskStatus.IN_PROGRESS,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusDays(1),
-                TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2));
-        assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task));
-    }
-
-    @Test
     void createTask_withNotNullId_throwsException() {
         Task task = new Task(
                 1L,
@@ -58,6 +48,31 @@ public class TaskServiceTest {
                 TaskPriority.HIGH,
                 LocalDateTime.now().plusDays(2));
         assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task));
+    }
+
+    @Test
+    void createTask_withValidTask_savesTask() {
+        Task task = new Task(
+                null,
+                0L,
+                0L,
+                null,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.HIGH,
+                LocalDateTime.now().plusDays(2));
+
+        TaskEntity taskEntity = mapper.toEntity(task);
+        taskEntity.setStatus(TaskStatus.CREATED);
+        taskEntity.setId(1L);
+
+        Mockito.when(repository.save(Mockito.any(TaskEntity.class))).thenReturn(taskEntity);
+
+        Task createdTask = mapper.toDomain(taskEntity);
+        Assertions.assertEquals(createdTask, taskService.createTask(task));
+
+        Mockito.verify(repository, Mockito.times(1)).save(Mockito.any(TaskEntity.class));
+
     }
 
     @Test
@@ -211,38 +226,6 @@ public class TaskServiceTest {
     }
 
     @Test
-    void updateTask_setNotInProgressStatusToDoneTask_throwsException() {
-        long id = 1L;
-        TaskEntity taskEntity = new TaskEntity(
-                id,
-                0L,
-                1L,
-                TaskStatus.DONE,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusDays(1),
-                TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2));
-
-        Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
-
-        for (TaskStatus status : TaskStatus.values()) {
-            if (status == TaskStatus.IN_PROGRESS) continue;
-
-            Task task = new Task(
-                    null,
-                    0L,
-                    1L,
-                    status,
-                    LocalDateTime.now(),
-                    LocalDateTime.now().plusDays(1),
-                    TaskPriority.HIGH,
-                    LocalDateTime.now().plusDays(2));
-
-            assertThrows(IllegalStateException.class, () -> taskService.updateTask(id, task));
-        }
-    }
-
-    @Test
     void getTaskById_withNotExistsTaskId_throwsException() {
         long id = 1L;
         Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
@@ -254,5 +237,68 @@ public class TaskServiceTest {
         long id = 1L;
         Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> taskService.deleteTask(id));
+    }
+
+    @Test
+    void getAllTasksWithFilters_getTasks() {
+        TaskSearchFilter filter = new TaskSearchFilter(
+                1L,
+                1L,
+                TaskStatus.CREATED,
+                TaskPriority.MEDIUM
+        );
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
+
+        List<TaskEntity> repositoryResponse = new ArrayList<>();
+        repositoryResponse.add(new TaskEntity(
+                0L,
+                0L,
+                0L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.MEDIUM,
+                null)
+        );
+        repositoryResponse.add(new TaskEntity(
+                1L,
+                1L,
+                1L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.MEDIUM,
+                null)
+        );
+        repositoryResponse.add(new TaskEntity(
+                2L,
+                2L,
+                2L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.MEDIUM,
+                null)
+        );
+
+        Mockito.when(repository.getAllTasksWithFilters(
+                filter.creatorId(),
+                filter.assignedUserId(),
+                filter.status(),
+                filter.priority(),
+                pageable
+        )).thenReturn(repositoryResponse);
+
+        assertEquals(taskService.getAllTasksWithFilters(filter, pageable),
+                repositoryResponse.stream().map(mapper::toDomain).toList());
+
+        Mockito.verify(repository, Mockito.times(1)).getAllTasksWithFilters(
+                filter.creatorId(),
+                filter.assignedUserId(),
+                filter.status(),
+                filter.priority(),
+                pageable
+        );
     }
 }

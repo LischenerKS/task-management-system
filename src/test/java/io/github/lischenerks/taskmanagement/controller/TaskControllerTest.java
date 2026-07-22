@@ -3,21 +3,26 @@ package io.github.lischenerks.taskmanagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.TaskPriority;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.Task;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
+import io.github.lischenerks.taskmanagement.dto.CreateTaskDto;
+import io.github.lischenerks.taskmanagement.dto.TaskResponseDto;
+import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
+import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 
 import java.time.LocalDateTime;
@@ -28,16 +33,18 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@Import(TaskMapper.class)
+@WebMvcTest(TaskController.class)
 public class TaskControllerTest {
 
-    @Mock
+    @MockitoBean
     private TaskService taskService;
 
-    @InjectMocks
-    private TaskController controller;
-
+    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private TaskMapper mapper;
 
     private ObjectMapper objectMapper;
 
@@ -45,7 +52,6 @@ public class TaskControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -60,6 +66,7 @@ public class TaskControllerTest {
                 TaskPriority.HIGH,
                 LocalDateTime.now().plusDays(2)
         );
+
     }
 
     @Test
@@ -68,18 +75,24 @@ public class TaskControllerTest {
                 null,
                 null,
                 null,
-                null,
-                null,
                 null
         );
 
-        Mockito.when(taskService.getAllTasksWithFilters(filter)).thenReturn(List.of(task));
 
-        String expectedJson = objectMapper.writeValueAsString(List.of(task));
+        Mockito.when(taskService.getAllTasksWithFilters(Mockito.eq(filter), Mockito.any(Pageable.class))).thenReturn(
+                List.of(task));
+
+        List<TaskResponseDto> responseList = List.of(task).stream().map(mapper::toResponse).toList();
+
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
+        Page<TaskResponseDto> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
+
+        String expectedJson = objectMapper.writeValueAsString(responsePage);
 
         mockMvc.perform(get("/tasks")).andExpect(status().isOk()).andExpect(content().json(expectedJson));
 
-        verify(taskService, times(1)).getAllTasksWithFilters(filter);
+        verify(taskService, times(1)).getAllTasksWithFilters(filter, pageable);
     }
 
     @Test
@@ -95,10 +108,19 @@ public class TaskControllerTest {
 
     @Test
     void createTask() throws Exception {
+        CreateTaskDto createTaskDto = new CreateTaskDto(
+                task.creatorId(),
+                task.assignedUserId(),
+                task.deadlineDate(),
+                task.priority()
+        );
+
+        String createTaskDtoJson = objectMapper.writeValueAsString(createTaskDto);
         String taskJson = objectMapper.writeValueAsString(task);
+
         Mockito.when(taskService.createTask(task)).thenReturn(task);
 
-        mockMvc.perform(post("/tasks").contentType(MediaType.APPLICATION_JSON).content(taskJson)
+        mockMvc.perform(post("/tasks").contentType(MediaType.APPLICATION_JSON).content(createTaskDtoJson)
         ).andExpect(status().isCreated()).andExpect(content().json(taskJson));
 
         verify(taskService, times(1)).createTask(task);
@@ -116,15 +138,56 @@ public class TaskControllerTest {
     }
 
     @Test
+    void updateTask_returnsConflict_whenOptimisticLockFails() throws Exception {
+        String taskJson = objectMapper.writeValueAsString(task);
+        Mockito.when(taskService.updateTask(1L, task)).thenThrow(new ObjectOptimisticLockingFailureException(
+                TaskEntity.class,
+                1L));
+
+        mockMvc.perform(put("/tasks/{id}", 1L).contentType(MediaType.APPLICATION_JSON).content(taskJson)
+        ).andExpect(status().isConflict());
+
+        verify(taskService, times(1)).updateTask(1L, task);
+    }
+
+    @Test
     void startTask() throws Exception {
-        mockMvc.perform(post("/tasks/{id}/start", 1L)).andExpect(status().isOk());
+        Task startedTask = new Task(
+                task.id(),
+                task.creatorId(),
+                task.assignedUserId(),
+                TaskStatus.IN_PROGRESS,
+                task.createDateTime(),
+                task.deadlineDate(),
+                task.priority(),
+                task.doneDateTime()
+        );
+
+        String startedTaskJson = objectMapper.writeValueAsString(startedTask);
+        Mockito.when(taskService.startTask(1L)).thenReturn(startedTask);
+        mockMvc.perform(post("/tasks/{id}/start", 1L).contentType(MediaType.APPLICATION_JSON).content(
+                startedTaskJson)).andExpect(status().isOk());
 
         verify(taskService, times(1)).startTask(1L);
     }
 
     @Test
     void completeTask() throws Exception {
-        mockMvc.perform(post("/tasks/{id}/complete", 1L)).andExpect(status().isOk());
+        Task completedTask = new Task(
+                task.id(),
+                task.creatorId(),
+                task.assignedUserId(),
+                TaskStatus.DONE,
+                task.createDateTime(),
+                task.deadlineDate(),
+                task.priority(),
+                task.doneDateTime()
+        );
+        String completedTaskJson = objectMapper.writeValueAsString(completedTask);
+        Mockito.when(taskService.completeTask(1L)).thenReturn(completedTask);
+
+        mockMvc.perform(post("/tasks/{id}/complete", 1L).contentType(MediaType.APPLICATION_JSON).content(
+                completedTaskJson)).andExpect(status().isOk());
         verify(taskService, times(1)).completeTask(1L);
     }
 }

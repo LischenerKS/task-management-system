@@ -1,8 +1,8 @@
 package io.github.lischenerks.taskmanagement.service;
 
-import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.TaskMapper;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.Task;
+import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,16 +32,11 @@ public class TaskService {
         log.info("called method getTaskById with id = {}", id);
         TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Not found task with id = " + id));
-        return mapper.toTask(taskEntity);
+        return mapper.toDomain(taskEntity);
     }
 
     @Transactional(readOnly = true)
-    public List<Task> getAllTasksWithFilters(TaskSearchFilter filter) {
-        int pageSize = filter.pageSize() != null ? filter.pageSize() : 10;
-        int pageNumber = filter.pageNumber() != null ? filter.pageNumber() : 0;
-
-        var pageable = Pageable.ofSize(pageSize).withPage(pageNumber);
-
+    public List<Task> getAllTasksWithFilters(TaskSearchFilter filter, Pageable pageable) {
         log.info("called method getAllTasksWithFilters");
 
         return repository.getAllTasksWithFilters(
@@ -50,24 +45,20 @@ public class TaskService {
                 filter.status(),
                 filter.priority(),
                 pageable
-        ).stream().map(mapper::toTask).toList();
+        ).stream().map(mapper::toDomain).toList();
     }
 
     @Transactional
     public Task createTask(Task task) {
         log.info("called method createTask");
-        if (task.status() != null) {
-            throw new IllegalArgumentException("created tasks status must be null");
-        }
         if (task.id() != null) {
             throw new IllegalArgumentException("created tasks id must be null");
         }
-
-        TaskEntity createdTask = mapper.toTaskEntity(task);
+        TaskEntity createdTask = mapper.toEntity(task);
         createdTask.setStatus(TaskStatus.CREATED);
         TaskEntity savedTask = repository.save(createdTask);
         log.info("method createTask saved task with id = {}", savedTask.getId());
-        return mapper.toTask(savedTask);
+        return mapper.toDomain(savedTask);
     }
 
     @Transactional
@@ -76,22 +67,17 @@ public class TaskService {
         if (task.id() != null) {
             throw new IllegalArgumentException("updated tasks id must be null");
         }
+
         TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Not found task with id = " + id));
-        if (taskEntity.getStatus() == TaskStatus.DONE && task.status() != TaskStatus.IN_PROGRESS) {
-            throw new IllegalStateException(
-                    "can not set status %S to task with status DONE. You can set only status IN_PROGRESS".formatted(
-                            task.status()));
-        }
-        taskEntity.setCreatorId(task.creatorId());
+
         taskEntity.setAssignedUserId(task.assignedUserId());
-        taskEntity.setCreateDateTime(task.createDateTime());
-        taskEntity.setStatus(task.status());
         taskEntity.setDeadlineDate(task.deadlineDate());
         taskEntity.setPriority(task.priority());
+
         TaskEntity updatedTask = repository.save(taskEntity);
         log.info("method updateTask updated task with id = {}", updatedTask.getId());
-        return mapper.toTask(updatedTask);
+        return mapper.toDomain(updatedTask);
     }
 
     @Transactional
@@ -129,7 +115,7 @@ public class TaskService {
         taskEntity.setStatus(TaskStatus.IN_PROGRESS);
         TaskEntity startedTask = repository.save(taskEntity);
         log.info("method startTask started task with id = {}", id);
-        return mapper.toTask(startedTask);
+        return mapper.toDomain(startedTask);
     }
 
     @Transactional
@@ -148,6 +134,6 @@ public class TaskService {
 
         TaskEntity completedTask = repository.save(taskEntity);
         log.info("method completeTask completed task with id = {}", id);
-        return mapper.toTask(completedTask);
+        return mapper.toDomain(completedTask);
     }
 }

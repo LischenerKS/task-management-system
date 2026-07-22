@@ -1,8 +1,10 @@
 package io.github.lischenerks.taskmanagement.repository;
 
-import io.github.lischenerks.taskmanagement.TaskPriority;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -13,24 +15,28 @@ public class TaskEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "creator_id")
+    @Column(name = "creator_id", nullable = false)
     private Long creatorId;
 
     @Column(name = "assigned_user_id")
     private Long assignedUserId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     private TaskStatus status;
 
-    @Column(name = "create_date_time")
+    @CreationTimestamp
+    @Column(name = "create_date_time", nullable = false, updatable = false)
     private LocalDateTime createDateTime;
 
-    @Column(name = "deadline_date")
+    @Column(name = "deadline_date", nullable = false)
     private LocalDateTime deadlineDate;
 
+    @Column(name = "done_date_time")
+    private LocalDateTime doneDateTime;
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "priority")
+    @Column(name = "priority", nullable = false)
     private TaskPriority priority;
 
     @Version
@@ -39,14 +45,15 @@ public class TaskEntity {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TaskEntity that = (TaskEntity) o;
-        return Objects.equals(id, that.id);
+        return id != null && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id);
+        return getClass().hashCode();
     }
 
     public TaskEntity(
@@ -68,8 +75,6 @@ public class TaskEntity {
         this.doneDateTime = doneDateTime;
     }
 
-    @Column(name = "done_date_time")
-    private LocalDateTime doneDateTime;
 
     public TaskEntity() {
     }

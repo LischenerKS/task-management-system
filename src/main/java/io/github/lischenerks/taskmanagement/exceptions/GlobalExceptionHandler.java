@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
 
         var errorDto = new ErrorResponseDto(
                 "Internal server error",
-                e.getMessage(),
+                "",
                 LocalDateTime.now()
         );
 

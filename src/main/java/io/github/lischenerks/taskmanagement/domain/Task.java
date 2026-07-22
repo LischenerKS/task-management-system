@@ -1,22 +1,19 @@
 package io.github.lischenerks.taskmanagement.domain;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 public record Task(
         Long id,
 
-        @NotNull Long creatorId,
+        Long creatorId,
         Long assignedUserId,
         TaskStatus status,
         LocalDateTime createDateTime,
 
-        @NotNull @Future LocalDateTime deadlineDate,
+        LocalDateTime deadlineDate,
 
-        @NotNull TaskPriority priority,
+        TaskPriority priority,
 
         LocalDateTime doneDateTime
 ) {

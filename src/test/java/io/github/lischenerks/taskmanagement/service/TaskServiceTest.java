@@ -37,20 +37,6 @@ public class TaskServiceTest {
     private TaskMapper mapper;
 
     @Test
-    void createTask_withNotNullStatus_throwsException() {
-        Task task = new Task(
-                null,
-                0L,
-                0L,
-                TaskStatus.IN_PROGRESS,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusDays(1),
-                TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2));
-        assertThrows(IllegalArgumentException.class, () -> taskService.createTask(task));
-    }
-
-    @Test
     void createTask_withNotNullId_throwsException() {
         Task task = new Task(
                 1L,

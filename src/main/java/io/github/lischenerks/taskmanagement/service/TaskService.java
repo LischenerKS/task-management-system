@@ -51,13 +51,9 @@ public class TaskService {
     @Transactional
     public Task createTask(Task task) {
         log.info("called method createTask");
-        if (task.status() != null) {
-            throw new IllegalArgumentException("created tasks status must be null");
-        }
         if (task.id() != null) {
             throw new IllegalArgumentException("created tasks id must be null");
         }
-
         TaskEntity createdTask = mapper.toEntity(task);
         createdTask.setStatus(TaskStatus.CREATED);
         TaskEntity savedTask = repository.save(createdTask);

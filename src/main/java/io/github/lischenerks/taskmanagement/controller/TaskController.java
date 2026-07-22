@@ -1,5 +1,6 @@
 package io.github.lischenerks.taskmanagement.controller;
 
+import io.github.lischenerks.taskmanagement.dto.CreateTaskDto;
 import io.github.lischenerks.taskmanagement.dto.TaskResponseDto;
 import io.github.lischenerks.taskmanagement.domain.Task;
 import io.github.lischenerks.taskmanagement.domain.TaskPriority;
@@ -60,24 +61,24 @@ public class TaskController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTaskById(
+    public ResponseEntity<TaskResponseDto> getTaskById(
             @PathVariable("id") Long id
     ) {
         log.info("called method getTestById with id= {}", id);
         var task = taskService.getTaskById(id);
         log.info("method getTestById return task with id= {}", task.id());
-        return ResponseEntity.status(HttpStatus.OK).body(task);
+        return ResponseEntity.status(HttpStatus.OK).body(mapper.toResponse(task));
 
     }
 
     @PostMapping()
-    public ResponseEntity<Task> createTask(
-            @Valid @RequestBody Task task
+    public ResponseEntity<TaskResponseDto> createTask(
+            @Valid @RequestBody CreateTaskDto dto
     ) {
         log.info("called method createTask");
-        var createdTask = taskService.createTask(task);
+        var createdTask = taskService.createTask(mapper.toDomain(dto));
         log.info("method createTask successfully ended");
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toResponse(createdTask));
     }
 
     @PutMapping("/{id}")

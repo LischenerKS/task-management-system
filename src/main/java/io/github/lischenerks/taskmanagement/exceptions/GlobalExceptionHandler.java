@@ -31,7 +31,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<ErrorResponseDto> handleObjectOptimisticLockingFailureException(ObjectOptimisticLockingFailureException e) {
+    public ResponseEntity<ErrorResponseDto> handleObjectOptimisticLockingFailureException(
+            ObjectOptimisticLockingFailureException e) {
         log.error("Handle objectOptimisticLockingFailureException", e);
 
         var errorDto = new ErrorResponseDto(

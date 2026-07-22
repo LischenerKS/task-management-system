@@ -11,7 +11,6 @@ import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -19,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 
 import java.time.LocalDateTime;
@@ -117,7 +115,9 @@ public class TaskControllerTest {
     @Test
     void updateTask_returnsConflict_whenOptimisticLockFails() throws Exception {
         String taskJson = objectMapper.writeValueAsString(task);
-        Mockito.when(taskService.updateTask(1L, task)).thenThrow(new ObjectOptimisticLockingFailureException(TaskEntity.class, 1L));
+        Mockito.when(taskService.updateTask(1L, task)).thenThrow(new ObjectOptimisticLockingFailureException(
+                TaskEntity.class,
+                1L));
 
         mockMvc.perform(put("/tasks/{id}", 1L).contentType(MediaType.APPLICATION_JSON).content(taskJson)
         ).andExpect(status().isConflict());

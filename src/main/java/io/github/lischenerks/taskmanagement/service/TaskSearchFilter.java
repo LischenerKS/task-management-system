@@ -1,13 +1,11 @@
 package io.github.lischenerks.taskmanagement.service;
 
-import io.github.lischenerks.taskmanagement.model.TaskPriority;
-import io.github.lischenerks.taskmanagement.model.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 
 public record TaskSearchFilter(
         Long creatorId,
         Long assignedUserId,
         TaskStatus status,
-        TaskPriority priority,
-        Integer pageSize,
-        Integer pageNumber) {
+        TaskPriority priority) {
 }

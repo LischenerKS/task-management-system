@@ -1,7 +1,7 @@
 package io.github.lischenerks.taskmanagement.repository;
 
-import io.github.lischenerks.taskmanagement.model.TaskPriority;
-import io.github.lischenerks.taskmanagement.model.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Assertions;

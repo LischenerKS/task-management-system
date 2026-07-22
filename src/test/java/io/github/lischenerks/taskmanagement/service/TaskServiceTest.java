@@ -3,10 +3,10 @@ package io.github.lischenerks.taskmanagement.service;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.github.lischenerks.taskmanagement.Task;
+import io.github.lischenerks.taskmanagement.domain.Task;
 import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
-import io.github.lischenerks.taskmanagement.model.TaskPriority;
-import io.github.lischenerks.taskmanagement.model.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;

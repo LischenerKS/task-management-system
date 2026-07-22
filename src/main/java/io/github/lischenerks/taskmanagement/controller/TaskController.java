@@ -1,13 +1,19 @@
 package io.github.lischenerks.taskmanagement.controller;
 
-import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.model.TaskPriority;
-import io.github.lischenerks.taskmanagement.model.TaskStatus;
+import io.github.lischenerks.taskmanagement.dto.TaskResponseDTO;
+import io.github.lischenerks.taskmanagement.domain.Task;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
+import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,33 +25,37 @@ import java.util.List;
 public class TaskController {
     private final TaskService taskService;
 
+    private final TaskMapper mapper;
+
     private static final Logger log = LoggerFactory.getLogger(TaskController.class);
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, TaskMapper mapper) {
         this.taskService = taskService;
+        this.mapper = mapper;
     }
 
     @GetMapping
-    public ResponseEntity<List<Task>> getAllTasksWithFilters(
+    public ResponseEntity<Page<TaskResponseDTO>> getAllTasksWithFilters(
             @RequestParam(name = "creatorId", required = false) Long creatorId,
             @RequestParam(name = "assignedUserId", required = false) Long assignedUserId,
             @RequestParam(name = "status", required = false) TaskStatus status,
             @RequestParam(name = "priority", required = false) TaskPriority priority,
-            @RequestParam(name = "pageSize", required = false) Integer pageSize,
-            @RequestParam(name = "pageNumber", required = false) Integer pageNumber
+            @PageableDefault(size = 10, page = 0, sort = "id") Pageable pageable
     ) {
         log.info("called method getAllTasksWithFilters");
-        TaskSearchFilter fIlter = new TaskSearchFilter(
+        TaskSearchFilter filter = new TaskSearchFilter(
                 creatorId,
                 assignedUserId,
                 status,
-                priority,
-                pageSize,
-                pageNumber
+                priority
         );
-        var tasks = taskService.getAllTasksWithFilters(fIlter);
+        List<Task> tasks = taskService.getAllTasksWithFilters(filter, pageable);
         log.info("method getAllTasksWithFilters return {} tasks", tasks.size());
-        return ResponseEntity.status(HttpStatus.OK).body(tasks);
+
+        List<TaskResponseDTO> responseList = tasks.stream().map(mapper::toResponse).toList();
+
+        Page<TaskResponseDTO> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
+        return ResponseEntity.status(HttpStatus.OK).body(responsePage);
     }
 
 
@@ -95,7 +105,7 @@ public class TaskController {
     @PostMapping("/{id}/start")
     public ResponseEntity<Task> startTask(
             @PathVariable("id") Long id
-    ) throws InterruptedException {
+    ) {
         log.info("called method startTask with id = {}", id);
         var startedTask = taskService.startTask(id);
         log.info("method startTask with id = {} successfully ended", id);

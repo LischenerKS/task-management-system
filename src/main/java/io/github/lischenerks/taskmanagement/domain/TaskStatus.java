@@ -1,4 +1,4 @@
-package io.github.lischenerks.taskmanagement.model;
+package io.github.lischenerks.taskmanagement.domain;
 
 public enum TaskStatus {
     CREATED,

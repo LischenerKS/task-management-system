@@ -3,9 +3,11 @@ package io.github.lischenerks.taskmanagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.model.TaskPriority;
-import io.github.lischenerks.taskmanagement.model.TaskStatus;
+import io.github.lischenerks.taskmanagement.domain.Task;
+import io.github.lischenerks.taskmanagement.domain.TaskPriority;
+import io.github.lischenerks.taskmanagement.domain.TaskStatus;
+import io.github.lischenerks.taskmanagement.dto.TaskResponseDTO;
+import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
@@ -14,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -37,6 +40,9 @@ public class TaskControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean
+    private TaskMapper mapper;
+
     private ObjectMapper objectMapper;
 
     private Task task;
@@ -57,26 +63,46 @@ public class TaskControllerTest {
                 TaskPriority.HIGH,
                 LocalDateTime.now().plusDays(2)
         );
+
     }
 
     @Test
     void getAllTasksWithFilters() throws Exception {
+        TaskResponseDTO responseDTO = new TaskResponseDTO(
+                1L,
+                0L,
+                1L,
+                TaskStatus.CREATED,
+                task.createDateTime(),
+                task.deadlineDate(),
+                TaskPriority.HIGH,
+                task.doneDateTime()
+        );
+
+        Mockito.when(mapper.toResponse(task)).thenReturn(responseDTO);
+
         TaskSearchFilter filter = new TaskSearchFilter(
-                null,
-                null,
                 null,
                 null,
                 null,
                 null
         );
 
-        Mockito.when(taskService.getAllTasksWithFilters(filter)).thenReturn(List.of(task));
 
-        String expectedJson = objectMapper.writeValueAsString(List.of(task));
+        Mockito.when(taskService.getAllTasksWithFilters(Mockito.eq(filter), Mockito.any(Pageable.class))).thenReturn(
+                List.of(task));
+
+        List<TaskResponseDTO> responseList = List.of(task).stream().map(mapper::toResponse).toList();
+
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
+        Page<TaskResponseDTO> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
+
+        String expectedJson = objectMapper.writeValueAsString(responsePage);
 
         mockMvc.perform(get("/tasks")).andExpect(status().isOk()).andExpect(content().json(expectedJson));
 
-        verify(taskService, times(1)).getAllTasksWithFilters(filter);
+        verify(taskService, times(1)).getAllTasksWithFilters(filter, pageable);
     }
 
     @Test

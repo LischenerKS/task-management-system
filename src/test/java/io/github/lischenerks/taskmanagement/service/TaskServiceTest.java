@@ -1,8 +1,5 @@
 package io.github.lischenerks.taskmanagement.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.github.lischenerks.taskmanagement.domain.Task;
 import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
 import io.github.lischenerks.taskmanagement.domain.TaskPriority;
@@ -11,6 +8,8 @@ import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -20,6 +19,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
@@ -254,5 +258,68 @@ public class TaskServiceTest {
         long id = 1L;
         Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> taskService.deleteTask(id));
+    }
+
+    @Test
+    void getAllTasksWithFilters_getTasks() {
+        TaskSearchFilter filter = new TaskSearchFilter(
+                1L,
+                1L,
+                TaskStatus.CREATED,
+                TaskPriority.MEDIUM
+        );
+
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
+
+        List<TaskEntity> repositoryResponse = new ArrayList<>();
+        repositoryResponse.add(new TaskEntity(
+                0L,
+                0L,
+                0L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.MEDIUM,
+                null)
+        );
+        repositoryResponse.add(new TaskEntity(
+                1L,
+                1L,
+                1L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.MEDIUM,
+                null)
+        );
+        repositoryResponse.add(new TaskEntity(
+                2L,
+                2L,
+                2L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.MEDIUM,
+                null)
+        );
+
+        Mockito.when(repository.getAllTasksWithFilters(
+                filter.creatorId(),
+                filter.assignedUserId(),
+                filter.status(),
+                filter.priority(),
+                pageable
+        )).thenReturn(repositoryResponse);
+
+        assertEquals(taskService.getAllTasksWithFilters(filter, pageable),
+                repositoryResponse.stream().map(mapper::toDomain).toList());
+
+        Mockito.verify(repository, Mockito.times(1)).getAllTasksWithFilters(
+                filter.creatorId(),
+                filter.assignedUserId(),
+                filter.status(),
+                filter.priority(),
+                pageable
+        );
     }
 }

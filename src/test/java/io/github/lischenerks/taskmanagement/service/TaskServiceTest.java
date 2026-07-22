@@ -51,6 +51,31 @@ public class TaskServiceTest {
     }
 
     @Test
+    void createTask_withValidTask_savesTask() {
+        Task task = new Task(
+                null,
+                0L,
+                0L,
+                null,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.HIGH,
+                LocalDateTime.now().plusDays(2));
+
+        TaskEntity taskEntity = mapper.toEntity(task);
+        taskEntity.setStatus(TaskStatus.CREATED);
+        taskEntity.setId(1L);
+
+        Mockito.when(repository.save(Mockito.any(TaskEntity.class))).thenReturn(taskEntity);
+
+        Task createdTask = mapper.toDomain(taskEntity);
+        Assertions.assertEquals(createdTask, taskService.createTask(task));
+
+        Mockito.verify(repository, Mockito.times(1)).save(Mockito.any(TaskEntity.class));
+
+    }
+
+    @Test
     void startTask_withNullAssignedUserId_throwsException() {
         long id = 1L;
         TaskEntity taskEntity = new TaskEntity(

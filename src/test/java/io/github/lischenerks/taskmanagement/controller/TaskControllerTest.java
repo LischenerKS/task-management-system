@@ -152,14 +152,42 @@ public class TaskControllerTest {
 
     @Test
     void startTask() throws Exception {
-        mockMvc.perform(post("/tasks/{id}/start", 1L)).andExpect(status().isOk());
+        Task startedTask = new Task(
+                task.id(),
+                task.creatorId(),
+                task.assignedUserId(),
+                TaskStatus.IN_PROGRESS,
+                task.createDateTime(),
+                task.deadlineDate(),
+                task.priority(),
+                task.doneDateTime()
+        );
+
+        String startedTaskJson = objectMapper.writeValueAsString(startedTask);
+        Mockito.when(taskService.startTask(1L)).thenReturn(startedTask);
+        mockMvc.perform(post("/tasks/{id}/start", 1L).contentType(MediaType.APPLICATION_JSON).content(
+                startedTaskJson)).andExpect(status().isOk());
 
         verify(taskService, times(1)).startTask(1L);
     }
 
     @Test
     void completeTask() throws Exception {
-        mockMvc.perform(post("/tasks/{id}/complete", 1L)).andExpect(status().isOk());
+        Task completedTask = new Task(
+                task.id(),
+                task.creatorId(),
+                task.assignedUserId(),
+                TaskStatus.DONE,
+                task.createDateTime(),
+                task.deadlineDate(),
+                task.priority(),
+                task.doneDateTime()
+        );
+        String completedTaskJson = objectMapper.writeValueAsString(completedTask);
+        Mockito.when(taskService.completeTask(1L)).thenReturn(completedTask);
+
+        mockMvc.perform(post("/tasks/{id}/complete", 1L).contentType(MediaType.APPLICATION_JSON).content(
+                completedTaskJson)).andExpect(status().isOk());
         verify(taskService, times(1)).completeTask(1L);
     }
 }

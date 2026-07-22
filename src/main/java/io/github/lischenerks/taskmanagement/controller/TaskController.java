@@ -105,22 +105,22 @@ public class TaskController {
 
 
     @PostMapping("/{id}/start")
-    public ResponseEntity<Task> startTask(
+    public ResponseEntity<TaskResponseDto> startTask(
             @PathVariable("id") Long id
     ) {
         log.info("called method startTask with id = {}", id);
         var startedTask = taskService.startTask(id);
         log.info("method startTask with id = {} successfully ended", id);
-        return ResponseEntity.status(HttpStatus.OK).body(startedTask);
+        return ResponseEntity.status(HttpStatus.OK).body(mapper.toResponse(startedTask));
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<Task> completeTask(
+    public ResponseEntity<TaskResponseDto> completeTask(
             @PathVariable("id") Long id
     ) {
         log.info("called method completeTask with id = {}", id);
         var completedTask = taskService.completeTask(id);
         log.info("method completeTask with id = {} successfully ended", id);
-        return ResponseEntity.status(HttpStatus.OK).body(completedTask);
+        return ResponseEntity.status(HttpStatus.OK).body(mapper.toResponse(completedTask));
     }
 }

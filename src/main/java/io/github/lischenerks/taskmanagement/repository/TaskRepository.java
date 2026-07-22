@@ -40,7 +40,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
                         SELECT t from TaskEntity t
                         WHERE t.assignedUserId = :assignedUserId
                 """)
-    void lockTasksByAssignedUserId(
+    List<TaskEntity> lockTasksByAssignedUserId(
             @Param("assignedUserId") Long assignedUserId
     );
 }

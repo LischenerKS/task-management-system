@@ -1,8 +1,8 @@
 package io.github.lischenerks.taskmanagement.service;
 
 import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.TaskMapper;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
+import io.github.lischenerks.taskmanagement.model.TaskStatus;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;

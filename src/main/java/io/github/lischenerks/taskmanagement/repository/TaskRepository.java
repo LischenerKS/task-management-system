@@ -1,8 +1,8 @@
 package io.github.lischenerks.taskmanagement.repository;
 
 
-import io.github.lischenerks.taskmanagement.TaskPriority;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.model.TaskPriority;
+import io.github.lischenerks.taskmanagement.model.TaskStatus;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;

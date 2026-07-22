@@ -1,4 +1,4 @@
-package io.github.lischenerks.taskmanagement.exceptions;
+package io.github.lischenerks.taskmanagement.dto;
 
 import java.time.LocalDateTime;
 

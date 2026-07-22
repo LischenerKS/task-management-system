@@ -1,8 +1,8 @@
 package io.github.lischenerks.taskmanagement.controller;
 
 import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.TaskPriority;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.model.TaskPriority;
+import io.github.lischenerks.taskmanagement.model.TaskStatus;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
 import jakarta.validation.Valid;
@@ -95,7 +95,7 @@ public class TaskController {
     @PostMapping("/{id}/start")
     public ResponseEntity<Task> startTask(
             @PathVariable("id") Long id
-    ) {
+    ) throws InterruptedException {
         log.info("called method startTask with id = {}", id);
         var startedTask = taskService.startTask(id);
         log.info("method startTask with id = {} successfully ended", id);

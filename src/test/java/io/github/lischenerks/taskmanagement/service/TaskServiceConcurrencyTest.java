@@ -3,8 +3,8 @@ package io.github.lischenerks.taskmanagement.service;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.lischenerks.taskmanagement.Task;
-import io.github.lischenerks.taskmanagement.TaskPriority;
-import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.model.TaskPriority;
+import io.github.lischenerks.taskmanagement.model.TaskStatus;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import java.time.LocalDateTime;

@@ -1,5 +1,6 @@
 package io.github.lischenerks.taskmanagement.exceptions;
 
+import io.github.lischenerks.taskmanagement.dto.ErrorResponseDto;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

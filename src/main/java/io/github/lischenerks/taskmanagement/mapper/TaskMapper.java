@@ -1,5 +1,6 @@
-package io.github.lischenerks.taskmanagement;
+package io.github.lischenerks.taskmanagement.mapper;
 
+import io.github.lischenerks.taskmanagement.Task;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import org.springframework.stereotype.Component;
 

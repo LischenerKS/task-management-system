@@ -1,5 +1,7 @@
 package io.github.lischenerks.taskmanagement;
 
+import io.github.lischenerks.taskmanagement.model.TaskPriority;
+import io.github.lischenerks.taskmanagement.model.TaskStatus;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotNull;
 

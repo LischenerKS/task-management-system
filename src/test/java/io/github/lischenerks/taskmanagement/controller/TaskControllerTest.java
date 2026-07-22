@@ -71,18 +71,6 @@ public class TaskControllerTest {
 
     @Test
     void getAllTasksWithFilters() throws Exception {
-        TaskResponseDto responseDTO = new TaskResponseDto(
-                1L,
-                0L,
-                1L,
-                TaskStatus.CREATED,
-                task.createDateTime(),
-                task.deadlineDate(),
-                TaskPriority.HIGH,
-                task.doneDateTime()
-        );
-
-
         TaskSearchFilter filter = new TaskSearchFilter(
                 null,
                 null,

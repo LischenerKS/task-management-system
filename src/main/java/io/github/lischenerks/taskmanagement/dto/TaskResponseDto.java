@@ -5,7 +5,7 @@ import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 
 import java.time.LocalDateTime;
 
-public record TaskResponseDTO(
+public record TaskResponseDto(
         Long id,
         Long creatorId,
         Long assignedUserId,

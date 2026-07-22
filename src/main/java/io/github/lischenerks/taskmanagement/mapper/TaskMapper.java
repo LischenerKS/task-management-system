@@ -1,6 +1,6 @@
 package io.github.lischenerks.taskmanagement.mapper;
 
-import io.github.lischenerks.taskmanagement.dto.TaskResponseDTO;
+import io.github.lischenerks.taskmanagement.dto.TaskResponseDto;
 import io.github.lischenerks.taskmanagement.domain.Task;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import org.springframework.stereotype.Component;
@@ -31,8 +31,8 @@ public class TaskMapper {
                 task.doneDateTime());
     }
 
-    public TaskResponseDTO toResponse(Task task) {
-        return new TaskResponseDTO(
+    public TaskResponseDto toResponse(Task task) {
+        return new TaskResponseDto(
                 task.id(),
                 task.creatorId(),
                 task.assignedUserId(),

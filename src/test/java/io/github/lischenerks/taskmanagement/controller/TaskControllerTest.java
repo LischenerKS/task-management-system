@@ -6,7 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.github.lischenerks.taskmanagement.domain.Task;
 import io.github.lischenerks.taskmanagement.domain.TaskPriority;
 import io.github.lischenerks.taskmanagement.domain.TaskStatus;
-import io.github.lischenerks.taskmanagement.dto.TaskResponseDTO;
+import io.github.lischenerks.taskmanagement.dto.TaskResponseDto;
 import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
@@ -68,7 +68,7 @@ public class TaskControllerTest {
 
     @Test
     void getAllTasksWithFilters() throws Exception {
-        TaskResponseDTO responseDTO = new TaskResponseDTO(
+        TaskResponseDto responseDTO = new TaskResponseDto(
                 1L,
                 0L,
                 1L,
@@ -92,11 +92,11 @@ public class TaskControllerTest {
         Mockito.when(taskService.getAllTasksWithFilters(Mockito.eq(filter), Mockito.any(Pageable.class))).thenReturn(
                 List.of(task));
 
-        List<TaskResponseDTO> responseList = List.of(task).stream().map(mapper::toResponse).toList();
+        List<TaskResponseDto> responseList = List.of(task).stream().map(mapper::toResponse).toList();
 
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
-        Page<TaskResponseDTO> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
+        Page<TaskResponseDto> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
 
         String expectedJson = objectMapper.writeValueAsString(responsePage);
 

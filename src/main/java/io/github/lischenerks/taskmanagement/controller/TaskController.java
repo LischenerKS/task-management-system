@@ -1,6 +1,6 @@
 package io.github.lischenerks.taskmanagement.controller;
 
-import io.github.lischenerks.taskmanagement.dto.TaskResponseDTO;
+import io.github.lischenerks.taskmanagement.dto.TaskResponseDto;
 import io.github.lischenerks.taskmanagement.domain.Task;
 import io.github.lischenerks.taskmanagement.domain.TaskPriority;
 import io.github.lischenerks.taskmanagement.domain.TaskStatus;
@@ -35,7 +35,7 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<TaskResponseDTO>> getAllTasksWithFilters(
+    public ResponseEntity<Page<TaskResponseDto>> getAllTasksWithFilters(
             @RequestParam(name = "creatorId", required = false) Long creatorId,
             @RequestParam(name = "assignedUserId", required = false) Long assignedUserId,
             @RequestParam(name = "status", required = false) TaskStatus status,
@@ -52,9 +52,9 @@ public class TaskController {
         List<Task> tasks = taskService.getAllTasksWithFilters(filter, pageable);
         log.info("method getAllTasksWithFilters return {} tasks", tasks.size());
 
-        List<TaskResponseDTO> responseList = tasks.stream().map(mapper::toResponse).toList();
+        List<TaskResponseDto> responseList = tasks.stream().map(mapper::toResponse).toList();
 
-        Page<TaskResponseDTO> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
+        Page<TaskResponseDto> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
         return ResponseEntity.status(HttpStatus.OK).body(responsePage);
     }
 

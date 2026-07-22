@@ -3,6 +3,7 @@ package io.github.lischenerks.taskmanagement.mapper;
 import io.github.lischenerks.taskmanagement.dto.CreateTaskDto;
 import io.github.lischenerks.taskmanagement.dto.TaskResponseDto;
 import io.github.lischenerks.taskmanagement.domain.Task;
+import io.github.lischenerks.taskmanagement.dto.UpdateTaskDto;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +34,19 @@ public class TaskMapper {
         );
     }
 
+    public Task toDomain(UpdateTaskDto updateTaskDto) {
+        return new Task(
+                null,
+                null,
+                updateTaskDto.assignedUserId(),
+                null,
+                null,
+                updateTaskDto.deadlineDate(),
+                updateTaskDto.priority(),
+                null
+        );
+    }
+
     public TaskEntity toEntity(Task task) {
         return new TaskEntity(
                 task.id(),
@@ -57,4 +71,6 @@ public class TaskMapper {
                 task.doneDateTime()
         );
     }
+
+
 }

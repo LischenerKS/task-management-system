@@ -201,38 +201,6 @@ public class TaskServiceTest {
     }
 
     @Test
-    void updateTask_setNotInProgressStatusToDoneTask_throwsException() {
-        long id = 1L;
-        TaskEntity taskEntity = new TaskEntity(
-                id,
-                0L,
-                1L,
-                TaskStatus.DONE,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusDays(1),
-                TaskPriority.HIGH,
-                LocalDateTime.now().plusDays(2));
-
-        Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
-
-        for (TaskStatus status : TaskStatus.values()) {
-            if (status == TaskStatus.IN_PROGRESS) continue;
-
-            Task task = new Task(
-                    null,
-                    0L,
-                    1L,
-                    status,
-                    LocalDateTime.now(),
-                    LocalDateTime.now().plusDays(1),
-                    TaskPriority.HIGH,
-                    LocalDateTime.now().plusDays(2));
-
-            assertThrows(IllegalStateException.class, () -> taskService.updateTask(id, task));
-        }
-    }
-
-    @Test
     void getTaskById_withNotExistsTaskId_throwsException() {
         long id = 1L;
         Mockito.when(repository.findById(id)).thenReturn(Optional.empty());

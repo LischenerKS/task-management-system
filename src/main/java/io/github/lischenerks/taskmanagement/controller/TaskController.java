@@ -5,6 +5,7 @@ import io.github.lischenerks.taskmanagement.dto.TaskResponseDto;
 import io.github.lischenerks.taskmanagement.domain.Task;
 import io.github.lischenerks.taskmanagement.domain.TaskPriority;
 import io.github.lischenerks.taskmanagement.domain.TaskStatus;
+import io.github.lischenerks.taskmanagement.dto.UpdateTaskDto;
 import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
@@ -82,14 +83,14 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(
+    public ResponseEntity<TaskResponseDto> updateTask(
             @PathVariable("id") Long id,
-            @Valid @RequestBody Task task
+            @Valid @RequestBody UpdateTaskDto dto
     ) {
         log.info("called method updateTask with id = {}", id);
-        var updatedTask = taskService.updateTask(id, task);
+        var updatedTask = taskService.updateTask(id, mapper.toDomain(dto));
         log.info("method updateTask successfully ended");
-        return ResponseEntity.status(HttpStatus.OK).body(updatedTask);
+        return ResponseEntity.status(HttpStatus.OK).body(mapper.toResponse(updatedTask));
     }
 
     @DeleteMapping("/{id}")

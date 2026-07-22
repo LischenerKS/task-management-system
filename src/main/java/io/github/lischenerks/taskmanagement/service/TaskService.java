@@ -67,19 +67,14 @@ public class TaskService {
         if (task.id() != null) {
             throw new IllegalArgumentException("updated tasks id must be null");
         }
+
         TaskEntity taskEntity = repository.findById(id).orElseThrow(() -> new EntityNotFoundException(
                 "Not found task with id = " + id));
-        if (taskEntity.getStatus() == TaskStatus.DONE && task.status() != TaskStatus.IN_PROGRESS) {
-            throw new IllegalStateException(
-                    "can not set status %S to task with status DONE. You can set only status IN_PROGRESS".formatted(
-                            task.status()));
-        }
-        taskEntity.setCreatorId(task.creatorId());
+
         taskEntity.setAssignedUserId(task.assignedUserId());
-        taskEntity.setCreateDateTime(task.createDateTime());
-        taskEntity.setStatus(task.status());
         taskEntity.setDeadlineDate(task.deadlineDate());
         taskEntity.setPriority(task.priority());
+
         TaskEntity updatedTask = repository.save(taskEntity);
         log.info("method updateTask updated task with id = {}", updatedTask.getId());
         return mapper.toDomain(updatedTask);

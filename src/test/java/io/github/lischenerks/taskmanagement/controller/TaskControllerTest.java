@@ -6,16 +6,18 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.github.lischenerks.taskmanagement.Task;
 import io.github.lischenerks.taskmanagement.TaskPriority;
 import io.github.lischenerks.taskmanagement.TaskStatus;
+import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -28,15 +30,13 @@ import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(TaskController.class)
 public class TaskControllerTest {
 
-    @Mock
+    @MockitoBean
     private TaskService taskService;
 
-    @InjectMocks
-    private TaskController controller;
-
+    @Autowired
     private MockMvc mockMvc;
 
     private ObjectMapper objectMapper;
@@ -45,7 +45,6 @@ public class TaskControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
@@ -111,6 +110,17 @@ public class TaskControllerTest {
 
         mockMvc.perform(put("/tasks/{id}", 1L).contentType(MediaType.APPLICATION_JSON).content(taskJson)
         ).andExpect(status().isOk()).andExpect(content().json(taskJson));
+
+        verify(taskService, times(1)).updateTask(1L, task);
+    }
+
+    @Test
+    void updateTask_returnsConflict_whenOptimisticLockFails() throws Exception {
+        String taskJson = objectMapper.writeValueAsString(task);
+        Mockito.when(taskService.updateTask(1L, task)).thenThrow(new ObjectOptimisticLockingFailureException(TaskEntity.class, 1L));
+
+        mockMvc.perform(put("/tasks/{id}", 1L).contentType(MediaType.APPLICATION_JSON).content(taskJson)
+        ).andExpect(status().isConflict());
 
         verify(taskService, times(1)).updateTask(1L, task);
     }

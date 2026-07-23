@@ -77,25 +77,23 @@ public class TaskRepositoryTest {
                         null,
                         TaskStatus.CREATED,
                         null,
-                        Pageable.ofSize(10)),
+                        Pageable.ofSize(10)).getContent(),
                 List.of(entity1));
-
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
                         null,
                         null,
                         TaskStatus.IN_PROGRESS,
                         null,
-                        Pageable.ofSize(10)),
+                        Pageable.ofSize(10)).getContent(),
                 List.of(entity2));
-
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
                         null,
                         null,
                         TaskStatus.DONE,
                         null,
-                        Pageable.ofSize(10)),
+                        Pageable.ofSize(10)).getContent(),
                 List.of(entity3));
     }
 
@@ -107,62 +105,56 @@ public class TaskRepositoryTest {
                         null,
                         null,
                         TaskPriority.LOW,
-                        Pageable.ofSize(10)),
+                        Pageable.ofSize(10)).getContent(),
                 List.of(entity1));
-
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
                         null,
                         null,
                         null,
                         TaskPriority.MEDIUM,
-                        Pageable.ofSize(10)),
+                        Pageable.ofSize(10)).getContent(),
                 List.of(entity2));
-
         Assertions.assertEquals(
                 repository.getAllTasksWithFilters(
                         null,
                         null,
                         null,
                         TaskPriority.HIGH,
-                        Pageable.ofSize(10)),
+                        Pageable.ofSize(10)).getContent(),
                 List.of(entity3));
     }
 
     @Test
     void getAllTasksWithFilters_filtersByAssignedUserId() {
         Assertions.assertEquals(
-                repository.getAllTasksWithFilters(null, 0L, null, null, Pageable.ofSize(10)),
+                repository.getAllTasksWithFilters(null, 0L, null, null, Pageable.ofSize(10)).getContent(),
                 List.of(entity1));
-
         Assertions.assertEquals(
-                repository.getAllTasksWithFilters(null, 1L, null, null, Pageable.ofSize(10)),
+                repository.getAllTasksWithFilters(null, 1L, null, null, Pageable.ofSize(10)).getContent(),
                 List.of(entity2));
-
         Assertions.assertEquals(
-                repository.getAllTasksWithFilters(null, 2L, null, null, Pageable.ofSize(10)),
+                repository.getAllTasksWithFilters(null, 2L, null, null, Pageable.ofSize(10)).getContent(),
                 List.of(entity3));
     }
 
     @Test
     void getAllTasksWithFilters_filtersByCreatorId() {
         Assertions.assertEquals(
-                repository.getAllTasksWithFilters(0L, null, null, null, Pageable.ofSize(10)),
+                repository.getAllTasksWithFilters(0L, null, null, null, Pageable.ofSize(10)).getContent(),
                 List.of(entity1));
-
         Assertions.assertEquals(
-                repository.getAllTasksWithFilters(1L, null, null, null, Pageable.ofSize(10)),
+                repository.getAllTasksWithFilters(1L, null, null, null, Pageable.ofSize(10)).getContent(),
                 List.of(entity2));
-
         Assertions.assertEquals(
-                repository.getAllTasksWithFilters(2L, null, null, null, Pageable.ofSize(10)),
+                repository.getAllTasksWithFilters(2L, null, null, null, Pageable.ofSize(10)).getContent(),
                 List.of(entity3));
     }
 
     @Test
     void getAllTasksWithFilters_withoutFilters() {
         Assertions.assertEquals(
-                repository.getAllTasksWithFilters(null, null, null, null, Pageable.ofSize(10)),
+                repository.getAllTasksWithFilters(null, null, null, null, Pageable.ofSize(10)).getContent(),
                 List.of(entity1, entity2, entity3));
     }
 }

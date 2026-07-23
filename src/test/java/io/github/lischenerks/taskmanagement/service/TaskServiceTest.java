@@ -19,9 +19,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -242,16 +240,16 @@ public class TaskServiceTest {
     @Test
     void getAllTasksWithFilters_getTasks() {
         TaskSearchFilter filter = new TaskSearchFilter(
-                1L,
-                1L,
+                null,
+                null,
                 TaskStatus.CREATED,
                 TaskPriority.MEDIUM
         );
 
         Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
 
-        List<TaskEntity> repositoryResponse = new ArrayList<>();
-        repositoryResponse.add(new TaskEntity(
+        List<TaskEntity> repositoryContent = new ArrayList<>();
+        repositoryContent.add(new TaskEntity(
                 0L,
                 0L,
                 0L,
@@ -261,7 +259,7 @@ public class TaskServiceTest {
                 TaskPriority.MEDIUM,
                 null)
         );
-        repositoryResponse.add(new TaskEntity(
+        repositoryContent.add(new TaskEntity(
                 1L,
                 1L,
                 1L,
@@ -271,7 +269,7 @@ public class TaskServiceTest {
                 TaskPriority.MEDIUM,
                 null)
         );
-        repositoryResponse.add(new TaskEntity(
+        repositoryContent.add(new TaskEntity(
                 2L,
                 2L,
                 2L,
@@ -281,6 +279,8 @@ public class TaskServiceTest {
                 TaskPriority.MEDIUM,
                 null)
         );
+
+        Page<TaskEntity> repositoryResponse = new PageImpl<>(repositoryContent, pageable, repositoryContent.size());
 
         Mockito.when(repository.getAllTasksWithFilters(
                 filter.creatorId(),
@@ -290,8 +290,15 @@ public class TaskServiceTest {
                 pageable
         )).thenReturn(repositoryResponse);
 
-        assertEquals(taskService.getAllTasksWithFilters(filter, pageable),
-                repositoryResponse.stream().map(mapper::toDomain).toList());
+
+        Page<Task> result = taskService.getAllTasksWithFilters(filter, pageable);
+
+
+        assertEquals(
+                repositoryContent.stream().map(mapper::toDomain).toList(),
+                result.getContent()
+        );
+        assertEquals(repositoryResponse.getTotalElements(), result.getTotalElements());
 
         Mockito.verify(repository, Mockito.times(1)).getAllTasksWithFilters(
                 filter.creatorId(),

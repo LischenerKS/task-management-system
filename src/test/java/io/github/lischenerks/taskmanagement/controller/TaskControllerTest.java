@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.MediaType;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -78,17 +79,16 @@ public class TaskControllerTest {
                 null
         );
 
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
+        Page<Task> servicePage = new PageImpl<>(List.of(task), pageable, 1);
 
         Mockito.when(taskService.getAllTasksWithFilters(Mockito.eq(filter), Mockito.any(Pageable.class))).thenReturn(
-                List.of(task));
+                servicePage);
 
-        List<TaskResponseDto> responseList = List.of(task).stream().map(mapper::toResponse).toList();
+        Page<TaskResponseDto> responsePage = servicePage.map(mapper::toResponse);
+        PagedModel<TaskResponseDto> expectedBody = new PagedModel<>(responsePage);
 
-
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("id"));
-        Page<TaskResponseDto> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
-
-        String expectedJson = objectMapper.writeValueAsString(responsePage);
+        String expectedJson = objectMapper.writeValueAsString(expectedBody);
 
         mockMvc.perform(get("/tasks")).andExpect(status().isOk()).andExpect(content().json(expectedJson));
 

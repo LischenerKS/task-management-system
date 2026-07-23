@@ -1,6 +1,7 @@
 package io.github.lischenerks.taskmanagement.exceptions;
 
 import io.github.lischenerks.taskmanagement.dto.ErrorResponseDto;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ApiResponse(responseCode = "500", description = "Internal server error")
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleGenericException(Exception e) {
         log.error("Handle exception", e);
@@ -31,6 +33,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorDto);
     }
 
+    @ApiResponse(responseCode = "409", description = "Conflict")
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<ErrorResponseDto> handleObjectOptimisticLockingFailureException(
             ObjectOptimisticLockingFailureException e) {
@@ -44,6 +47,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorDto);
     }
 
+    @ApiResponse(responseCode = "404", description = "Entity not found")
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleEntityNotFoundException(EntityNotFoundException e) {
         log.error("Handle entityNotFoundException", e);
@@ -56,6 +60,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorDto);
     }
 
+
+    @ApiResponse(responseCode = "400", description = "Bad request")
     @ExceptionHandler(exception = {
             IllegalArgumentException.class,
             IllegalStateException.class,

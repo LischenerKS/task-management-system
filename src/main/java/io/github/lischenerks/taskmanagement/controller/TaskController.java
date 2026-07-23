@@ -12,10 +12,12 @@ import io.github.lischenerks.taskmanagement.service.TaskService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,12 +39,12 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<TaskResponseDto>> getAllTasksWithFilters(
+    public ResponseEntity<PagedModel<TaskResponseDto>> getAllTasksWithFilters(
             @RequestParam(name = "creatorId", required = false) Long creatorId,
             @RequestParam(name = "assignedUserId", required = false) Long assignedUserId,
             @RequestParam(name = "status", required = false) TaskStatus status,
             @RequestParam(name = "priority", required = false) TaskPriority priority,
-            @PageableDefault(size = 10, page = 0, sort = "id") Pageable pageable
+            @ParameterObject @PageableDefault(size = 10, page = 0, sort = "id") Pageable pageable
     ) {
         log.info("called method getAllTasksWithFilters");
         TaskSearchFilter filter = new TaskSearchFilter(
@@ -51,13 +53,13 @@ public class TaskController {
                 status,
                 priority
         );
-        List<Task> tasks = taskService.getAllTasksWithFilters(filter, pageable);
-        log.info("method getAllTasksWithFilters return {} tasks", tasks.size());
+        Page<Task> tasks = taskService.getAllTasksWithFilters(filter, pageable);
+        log.info("method getAllTasksWithFilters return {} tasks", tasks.getNumberOfElements());
 
         List<TaskResponseDto> responseList = tasks.stream().map(mapper::toResponse).toList();
 
         Page<TaskResponseDto> responsePage = new PageImpl<>(responseList, pageable, responseList.size());
-        return ResponseEntity.status(HttpStatus.OK).body(responsePage);
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedModel<>(responsePage));
     }
 
 

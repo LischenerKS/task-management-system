@@ -5,6 +5,7 @@ import io.github.lischenerks.taskmanagement.domain.TaskPriority;
 import io.github.lischenerks.taskmanagement.domain.TaskStatus;
 import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -25,7 +26,7 @@ public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
                 (:status is null OR t.status = :status) AND
                 (:priority is null OR t.priority = :priority)
             """)
-    List<TaskEntity> getAllTasksWithFilters(
+    Page<TaskEntity> getAllTasksWithFilters(
             @Param("creatorId") Long creatorId,
             @Param("assignedUserId") Long assignedUserId,
             @Param("status") TaskStatus status,

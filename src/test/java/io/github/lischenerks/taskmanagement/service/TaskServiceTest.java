@@ -22,6 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
@@ -71,6 +73,14 @@ public class TaskServiceTest {
 
         Mockito.verify(repository, Mockito.times(1)).save(Mockito.any(TaskEntity.class));
 
+    }
+
+    @Test
+    void startTask_withNotExistsTask_throwsEntityNotFound() {
+        long id = 1L;
+        Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> taskService.startTask(id));
+        Mockito.verify(repository, Mockito.times(0)).save(Mockito.any(TaskEntity.class));
     }
 
     @Test
@@ -124,6 +134,14 @@ public class TaskServiceTest {
                         assignedUserId,
                         TaskStatus.IN_PROGRESS)).thenReturn(5);
         assertThrows(IllegalStateException.class, () -> taskService.startTask(id));
+    }
+
+    @Test
+    void completeTask_withNotExistsTask_throwsEntityNotFound() {
+        long id = 1L;
+        Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> taskService.completeTask(id));
+        Mockito.verify(repository, Mockito.times(0)).save(Mockito.any(TaskEntity.class));
     }
 
     @Test
@@ -214,7 +232,8 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                null);
+                null
+        );
 
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         Mockito.when(repository.save(taskEntity)).thenReturn(taskEntity);
@@ -231,11 +250,50 @@ public class TaskServiceTest {
     }
 
     @Test
+    void getTaskById_withExistsTaskId_returnsTask() {
+        long id = 1L;
+        TaskEntity taskEntity = new TaskEntity(
+                id,
+                0L,
+                1L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.HIGH,
+                null
+        );
+
+        Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
+        Assertions.assertEquals(mapper.toDomain(taskEntity), taskService.getTaskById(id));
+        verify(repository, times(1)).findById(id);
+
+    }
+
+    @Test
     void deleteTaskById_withNotExistsTaskId_throwsException() {
         long id = 1L;
         Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> taskService.deleteTask(id));
     }
+
+    @Test
+    void deleteTaskById_withExistsTaskId_deleteTask() {
+        long id = 1L;
+        TaskEntity taskEntity = new TaskEntity(
+                id,
+                0L,
+                null,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.HIGH,
+                LocalDateTime.now().plusDays(2)
+        );
+        Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
+        taskService.deleteTask(id);
+        verify(repository, times(1)).delete(taskEntity);
+    }
+
 
     @Test
     void getAllTasksWithFilters_getTasks() {

@@ -7,6 +7,7 @@ import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.repository.TaskRepository;
 import jakarta.persistence.EntityNotFoundException;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class TaskService {
@@ -36,7 +36,7 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<Task> getAllTasksWithFilters(TaskSearchFilter filter, Pageable pageable) {
+    public Page<Task> getAllTasksWithFilters(TaskSearchFilter filter, Pageable pageable) {
         log.info("called method getAllTasksWithFilters");
 
         return repository.getAllTasksWithFilters(
@@ -45,7 +45,7 @@ public class TaskService {
                 filter.status(),
                 filter.priority(),
                 pageable
-        ).stream().map(mapper::toDomain).toList();
+        ).map(mapper::toDomain);
     }
 
     @Transactional

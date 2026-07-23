@@ -76,6 +76,14 @@ public class TaskServiceTest {
     }
 
     @Test
+    void startTask_withNotExistsTask_throwsEntityNotFound() {
+        long id = 1L;
+        Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> taskService.startTask(id));
+        Mockito.verify(repository, Mockito.times(0)).save(Mockito.any(TaskEntity.class));
+    }
+
+    @Test
     void startTask_withNullAssignedUserId_throwsException() {
         long id = 1L;
         TaskEntity taskEntity = new TaskEntity(
@@ -126,6 +134,14 @@ public class TaskServiceTest {
                         assignedUserId,
                         TaskStatus.IN_PROGRESS)).thenReturn(5);
         assertThrows(IllegalStateException.class, () -> taskService.startTask(id));
+    }
+
+    @Test
+    void completeTask_withNotExistsTask_throwsEntityNotFound() {
+        long id = 1L;
+        Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
+        assertThrows(EntityNotFoundException.class, () -> taskService.completeTask(id));
+        Mockito.verify(repository, Mockito.times(0)).save(Mockito.any(TaskEntity.class));
     }
 
     @Test
@@ -216,7 +232,8 @@ public class TaskServiceTest {
                 LocalDateTime.now(),
                 LocalDateTime.now().plusDays(1),
                 TaskPriority.HIGH,
-                null);
+                null
+        );
 
         Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
         Mockito.when(repository.save(taskEntity)).thenReturn(taskEntity);
@@ -230,6 +247,26 @@ public class TaskServiceTest {
         long id = 1L;
         Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> taskService.getTaskById(id));
+    }
+
+    @Test
+    void getTaskById_withExistsTaskId_returnsTask() {
+        long id = 1L;
+        TaskEntity taskEntity = new TaskEntity(
+                id,
+                0L,
+                1L,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.HIGH,
+                null
+        );
+
+        Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
+        Assertions.assertEquals(mapper.toDomain(taskEntity), taskService.getTaskById(id));
+        verify(repository, times(1)).findById(id);
+
     }
 
     @Test

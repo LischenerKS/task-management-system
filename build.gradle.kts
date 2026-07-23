@@ -58,6 +58,14 @@ tasks.withType<Test> {
     jvmArgs("-javaagent:${mockitoAgent.singleFile}")
 }
 
+// классы держатели данных без собственной логики, не учитывать в отчете по покрытию
+val jacocoExclusions = listOf(
+    "io/github/lischenerks/taskmanagement/TaskManagementSystemApplication.class",
+    "io/github/lischenerks/taskmanagement/dto/**",
+    "io/github/lischenerks/taskmanagement/repository/TaskEntity.class",
+    "io/github/lischenerks/taskmanagement/service/TaskSearchFilter.class"
+)
+
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
     reports {
@@ -65,6 +73,11 @@ tasks.jacocoTestReport {
         csv.required.set(true)
         html.required.set(true)
     }
+    classDirectories.setFrom(
+        files(classDirectories.files.map {
+            fileTree(it) { exclude(jacocoExclusions) }
+        })
+    )
 }
 
 tasks.check {

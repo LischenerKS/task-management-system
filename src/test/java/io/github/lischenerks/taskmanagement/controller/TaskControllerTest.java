@@ -12,6 +12,7 @@ import io.github.lischenerks.taskmanagement.mapper.TaskMapper;
 import io.github.lischenerks.taskmanagement.repository.TaskEntity;
 import io.github.lischenerks.taskmanagement.service.TaskSearchFilter;
 import io.github.lischenerks.taskmanagement.service.TaskService;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -96,12 +97,31 @@ public class TaskControllerTest {
     }
 
     @Test
-    void getTaskById() throws Exception {
+    void getTaskById_withUnexpectedException_returnInternalServerError() throws Exception {
+        long taskId = 1L;
+        Mockito.when(taskService.getTaskById(taskId)).thenThrow(new RuntimeException("unexpected exception"));
+
+        mockMvc.perform(get("/tasks/{id}", taskId)).andExpect(status().isInternalServerError());
+
+        verify(taskService, times(1)).getTaskById(1L);
+    }
+
+    @Test
+    void getTaskById_withValidId_returnTask() throws Exception {
         String expectedJson = objectMapper.writeValueAsString(task);
 
         Mockito.when(taskService.getTaskById(1L)).thenReturn(task);
 
         mockMvc.perform(get("/tasks/{id}", 1L)).andExpect(status().isOk()).andExpect(content().json(expectedJson));
+
+        verify(taskService, times(1)).getTaskById(1L);
+    }
+
+    @Test
+    void getTaskById_withInvalidId_returnEntityNotFound() throws Exception {
+        Mockito.when(taskService.getTaskById(1L)).thenThrow(EntityNotFoundException.class);
+
+        mockMvc.perform(get("/tasks/{id}", 1L)).andExpect(status().isNotFound());
 
         verify(taskService, times(1)).getTaskById(1L);
     }
@@ -127,7 +147,7 @@ public class TaskControllerTest {
     }
 
     @Test
-    void updateTask() throws Exception {
+    void updateTask_withValidTask_updateTask() throws Exception {
         String taskJson = objectMapper.writeValueAsString(task);
         Mockito.when(taskService.updateTask(1L, task)).thenReturn(task);
 
@@ -135,6 +155,20 @@ public class TaskControllerTest {
         ).andExpect(status().isOk()).andExpect(content().json(taskJson));
 
         verify(taskService, times(1)).updateTask(1L, task);
+    }
+
+    @Test
+    void updateTask_withPastDeadlineDate_returnBadRequest() throws Exception {
+        var taskEntity = mapper.toEntity(task);
+        taskEntity.setDeadlineDate(LocalDateTime.now().minusDays(1));
+        task = mapper.toDomain(taskEntity);
+
+        String taskJson = objectMapper.writeValueAsString(task);
+
+        mockMvc.perform(put("/tasks/{id}", 1L).contentType(MediaType.APPLICATION_JSON).content(taskJson)
+        ).andExpect(status().isBadRequest());
+
+        verify(taskService, times(0)).updateTask(1L, task);
     }
 
     @Test

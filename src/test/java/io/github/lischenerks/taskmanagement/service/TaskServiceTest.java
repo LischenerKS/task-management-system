@@ -22,6 +22,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskServiceTest {
@@ -236,6 +238,25 @@ public class TaskServiceTest {
         Mockito.when(repository.findById(id)).thenReturn(Optional.empty());
         assertThrows(EntityNotFoundException.class, () -> taskService.deleteTask(id));
     }
+
+    @Test
+    void deleteTaskById_withExistsTaskId_deleteTask() {
+        long id = 1L;
+        TaskEntity taskEntity = new TaskEntity(
+                id,
+                0L,
+                null,
+                TaskStatus.CREATED,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusDays(1),
+                TaskPriority.HIGH,
+                LocalDateTime.now().plusDays(2)
+        );
+        Mockito.when(repository.findById(id)).thenReturn(Optional.of(taskEntity));
+        taskService.deleteTask(id);
+        verify(repository, times(1)).delete(taskEntity);
+    }
+
 
     @Test
     void getAllTasksWithFilters_getTasks() {

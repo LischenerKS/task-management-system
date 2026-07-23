@@ -37,6 +37,6 @@ ENV JAVA_OPTS=""
 
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=40s --retries=5 \
-    CMD wget -qO- http://localhost:8080/v3/api-docs > /dev/null || exit 1
+    CMD wget -qO- http://localhost:8080/actuator/health > /dev/null || exit 1
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
